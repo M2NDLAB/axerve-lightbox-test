@@ -3,18 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fabrick Lightbox Payment</title>
+  <title>Fabrick Lightbox - Test</title>
 
   <!-- =====================================================
-       CSS INLINE
+       CSS INLINE 
+       Note:
+       - classi "status-message.*" controllate dal JS
+       - .spinner viene inserito dal JS nel bottone
        ===================================================== -->
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    /* Reset base */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
+    /* Layout pagina */
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -25,8 +26,9 @@
       padding: 20px;
     }
 
+    /* Card centrale */
     .container {
-      background: white;
+      background: #fff;
       border-radius: 20px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
       max-width: 600px;
@@ -40,10 +42,7 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    .header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
+    .header { text-align: center; margin-bottom: 30px; }
 
     .logo {
       width: 60px;
@@ -57,16 +56,8 @@
       font-size: 28px;
     }
 
-    h1 {
-      color: #2d3748;
-      font-size: 28px;
-      margin-bottom: 10px;
-    }
-
-    .subtitle {
-      color: #718096;
-      font-size: 14px;
-    }
+    h1 { color: #2d3748; font-size: 28px; margin-bottom: 10px; }
+    .subtitle { color: #718096; font-size: 14px; }
 
     .payment-info {
       background: #f7fafc;
@@ -81,25 +72,12 @@
       padding: 12px 0;
       border-bottom: 1px solid #e2e8f0;
     }
+    .info-row:last-child { border-bottom: none; }
 
-    .info-row:last-child {
-      border-bottom: none;
-    }
+    .info-label { color: #718096; font-size: 14px; }
+    .info-value { color: #2d3748; font-weight: 600; font-size: 14px; }
 
-    .info-label {
-      color: #718096;
-      font-size: 14px;
-    }
-
-    .info-value {
-      color: #2d3748;
-      font-weight: 600;
-      font-size: 14px;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
+    .form-group { margin-bottom: 20px; }
 
     label {
       display: block;
@@ -124,7 +102,7 @@
       border-radius: 8px;
       font-size: 14px;
       transition: all 0.3s ease;
-      background: white;
+      background: #fff;
       font-family: 'Courier New', monospace;
     }
 
@@ -134,11 +112,12 @@
       box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
+    /* Bottone pagamento */
     .pay-button {
       width: 100%;
       padding: 16px;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
+      color: #fff;
       border: none;
       border-radius: 12px;
       font-size: 16px;
@@ -154,17 +133,10 @@
       transform: translateY(-2px);
       box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
     }
+    .pay-button:active:not(:disabled) { transform: translateY(0); }
+    .pay-button:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    .pay-button:active:not(:disabled) {
-      transform: translateY(0);
-    }
-
-    .pay-button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    /* Spinner usato dal JS: viene inserito dentro #buttonText */
+    /* Spinner (inserito dal JS dentro #buttonText) */
     .spinner {
       display: inline-block;
       width: 16px;
@@ -174,12 +146,11 @@
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
       margin-right: 8px;
+      vertical-align: middle;
     }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
+    /* Box messaggi (gestito dal JS) */
     .status-message {
       margin-top: 20px;
       padding: 16px;
@@ -188,51 +159,32 @@
       display: none; /* il JS lo mostra/nasconde */
       animation: fadeIn 0.3s ease;
     }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to   { opacity: 1; }
-    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     .status-message.success {
       background: #c6f6d5;
       color: #22543d;
       border: 2px solid #9ae6b4;
     }
-
     .status-message.error {
       background: #fed7d7;
       color: #742a2a;
       border: 2px solid #fc8181;
+    } 
+    .status-message.pending {
+      background: #fef3c7;
+      color: #78350f;
+      border: 2px solid #fbbf24;
     }
-
     .status-message.info {
       background: #bee3f8;
       color: #2c5282;
       border: 2px solid #90cdf4;
     }
-
     .status-message.warning {
       background: #fef3c7;
       color: #78350f;
       border: 2px solid #fbbf24;
-    }
-
-    .security-badge {
-      text-align: center;
-      margin-top: 20px;
-      padding: 15px;
-      background: #f7fafc;
-      border-radius: 8px;
-      font-size: 12px;
-      color: #718096;
-    }
-
-    .security-badge svg {
-      width: 16px;
-      height: 16px;
-      vertical-align: middle;
-      margin-right: 5px;
     }
 
     .note {
@@ -244,24 +196,14 @@
       font-size: 13px;
       color: #3730a3;
     }
-
     .note strong {
       display: block;
       margin-bottom: 10px;
       color: #1e1b4b;
       font-size: 14px;
     }
-
-    .note ol {
-      margin-left: 20px;
-      margin-top: 10px;
-    }
-
-    .note li {
-      margin-bottom: 8px;
-      line-height: 1.6;
-    }
-
+    .note ol { margin-left: 20px; margin-top: 10px; }
+    .note li { margin-bottom: 8px; line-height: 1.6; }
     .note code {
       background: #c7d2fe;
       padding: 2px 6px;
@@ -278,33 +220,46 @@
       color: #e2e8f0;
       font-size: 13px;
     }
-
     .api-example strong {
       display: block;
       margin-bottom: 12px;
       color: #fbbf24;
     }
-
-    .api-example pre {
-      margin: 0;
-      overflow-x: auto;
-    }
-
+    .api-example pre { margin: 0; overflow-x: auto; }
     .api-example code {
       color: #a5f3fc;
       font-family: 'Courier New', monospace;
       font-size: 12px;
       line-height: 1.6;
     }
+
+    .security-badge {
+      text-align: center;
+      margin-top: 20px;
+      padding: 15px;
+      background: #f7fafc;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #718096;
+    }
+    .security-badge svg {
+      width: 16px;
+      height: 16px;
+      vertical-align: middle;
+      margin-right: 5px;
+    }
   </style>
 </head>
 
 <body>
+  <!-- =====================================================
+       HTML
+       ===================================================== -->
   <div class="container">
     <div class="header">
       <div class="logo">💳</div>
       <h1>Pagamento</h1>
-      <p class="subtitle">Powered by Fabrick Lightbox</p>
+      <p class="subtitle">Powered by Fabrick / Axerve Lightbox</p>
     </div>
 
     <div class="payment-info">
@@ -314,14 +269,14 @@
       </div>
       <div class="info-row">
         <span class="info-label">Metodo</span>
-        <span class="info-value">Carta di Credito</span>
+        <span class="info-value">Carta / APM (es. PayPal)</span>
       </div>
     </div>
 
     <!--
-      Form “manuale” per test:
+      Form manuale per test:
       - Inserisci shopLogin, paymentID e paymentToken ottenuti dal backend (payment/create)
-      - Il JS intercetta il submit e chiama axerve.lightBox.open(...)
+      - Il JS intercetta submit e chiama axerve.lightBox.open(...)
     -->
     <form id="paymentForm" novalidate>
       <div class="form-group">
@@ -362,12 +317,11 @@
       </div>
 
       <button type="submit" class="pay-button" id="payButton">
-        <!-- Il JS aggiorna questo span con spinner + testo -->
         <span id="buttonText">Apri Lightbox Pagamento</span>
       </button>
     </form>
 
-    <!-- Area messaggi: il JS la mostra/nasconde -->
+    <!-- Area messaggi (controllata dal JS) -->
     <div id="statusMessage" class="status-message"></div>
 
     <div class="note">
@@ -400,55 +354,59 @@
   </div>
 
   <!-- =====================================================
-       Axerve.js: scegli l'ambiente
-
+       Axerve.js (IMPORTANTE: deve stare PRIMA del tuo JS)
        Sandbox:    https://sandbox.gestpay.net/pagam/javascript/axerve.js
        Produzione: https://ecomm.sella.it/pagam/javascript/axerve.js
-
-       Importante:
-       - Axerve.js deve essere caricato PRIMA del tuo JS.
        ===================================================== -->
   <script src="https://sandbox.gestpay.net/pagam/javascript/axerve.js"></script>
 
   <!-- =====================================================
        JS INLINE
+       - aprire la Lightbox con open(paymentID, token, callback)
+       - gestire l’esito nella tua pagina
+       - per sicurezza chiudere la Lightbox con closeLightBox() (funzione globale di axerve.js, chiamata di default a conclusione pagamento dal js)
+       - log per debug
        ===================================================== -->
   <script>
     // =====================================================
-    // FABRICK / AXERVE LIGHTBOX - ESEMPIO CON LOG
+    // CONFIG DEBUG
+    // - abilita/disabilita log senza toccare il codice
     // =====================================================
+    const DEBUG = true;
+    const LOG_PREFIX = '[AXERVE-LB]';
 
-    // ---------------------------
-    // Elementi DOM
-    // ---------------------------
+    function log(...args)   { if (DEBUG) console.log(LOG_PREFIX, ...args); }
+    function warn(...args)  { if (DEBUG) console.warn(LOG_PREFIX, ...args); }
+    function error(...args) { console.error(LOG_PREFIX, ...args); }
+
+    // =====================================================
+    // DOM
+    // =====================================================
     const form = document.getElementById('paymentForm');
     const payButton = document.getElementById('payButton');
     const buttonText = document.getElementById('buttonText');
     const statusMessage = document.getElementById('statusMessage');
 
-    // Flag “stato pagamento”: serve per beforeunload
-    // (il bottone viene riabilitato subito dopo open)
+    // Stato “pagamento in corso”:
+    // - serve solo per beforeunload (evita uscita accidentale)
     let lightboxOpen = false;
 
-    // ---------------------------
-    // Funzione per mostrare messaggi di stato UI
-    // ---------------------------
+    // Timeout diagnostico: se la callback non arriva entro X secondi
+    let callbackTimeoutId = null;
+    const CALLBACK_TIMEOUT_MS = 60000;
+
+    // =====================================================
+    // UI helpers
+    // =====================================================
     function showMessage(message, type) {
       statusMessage.textContent = message;
       statusMessage.className = `status-message ${type}`;
       statusMessage.style.display = 'block';
 
-      // Messaggi di errore e warning rimangono visibili più a lungo
       const timeout = (type === 'error' || type === 'warning') ? 8000 : 5000;
-
-      setTimeout(() => {
-        statusMessage.style.display = 'none';
-      }, timeout);
+      setTimeout(() => { statusMessage.style.display = 'none'; }, timeout);
     }
 
-    // ---------------------------
-    // Funzione per mostrare/nascondere spinner sul bottone
-    // ---------------------------
     function setLoading(isLoading) {
       if (isLoading) {
         payButton.disabled = true;
@@ -459,25 +417,16 @@
       }
     }
 
-    // ---------------------------
-    // Valida i parametri inseriti
-    // ---------------------------
+    // =====================================================
+    // Validation
+    // =====================================================
     function validateInputs(shopLogin, paymentID, paymentToken) {
       const errors = [];
 
-      if (!shopLogin || shopLogin.trim().length === 0) {
-        errors.push('Shop Login è obbligatorio');
-      }
+      if (!shopLogin || shopLogin.trim().length === 0) errors.push('Shop Login è obbligatorio');
+      if (!paymentID || paymentID.trim().length === 0) errors.push('Payment ID è obbligatorio');
+      if (!paymentToken || paymentToken.trim().length === 0) errors.push('Payment Token è obbligatorio');
 
-      if (!paymentID || paymentID.trim().length === 0) {
-        errors.push('Payment ID è obbligatorio');
-      }
-
-      if (!paymentToken || paymentToken.trim().length === 0) {
-        errors.push('Payment Token è obbligatorio');
-      }
-
-      // Valida formato UUID per il token (opzionale ma consigliato)
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       if (paymentToken && !uuidRegex.test(paymentToken)) {
         errors.push('Payment Token non sembra un UUID valido');
@@ -486,100 +435,53 @@
       return errors;
     }
 
-    // ---------------------------
-    // Apri Lightbox con i parametri forniti
-    // ---------------------------
-    function openLightbox(shopLogin, paymentID, paymentToken) {
-      try {
-        // Verifica che la libreria Axerve sia caricata
-        if (typeof axerve === 'undefined' || !axerve.lightBox) {
-          throw new Error('Libreria Axerve non caricata. Verifica che lo script axerve.js sia incluso correttamente.');
-        }
-
-        console.log('Configurazione Lightbox:', {
-          shopLogin,
-          paymentID,
-          paymentToken: paymentToken.substring(0, 8) + '...' // Log parziale per sicurezza
-        });
-
-        // Step 1: Inizializza lo shop login
-        axerve.lightBox.shop = shopLogin;
-
-        // Segna che il lightbox è stato aperto: utile per bloccare l’uscita pagina
-        lightboxOpen = true;
-
-        // Step 2: Apri il Lightbox
-        // Da doc: axerve.lightBox.open(paymentID, paymentToken, callback)
-        // callback riceve un OGGETTO response con status "OK"/"KO"
-        axerve.lightBox.open(paymentID, paymentToken, (response) => {
-          // Il pagamento (o l’esito) è arrivato: da qui non blocchiamo più l’uscita pagina
-          lightboxOpen = false;
-
-          console.log('✅ Lightbox callback response:', response);
-
-          // Deleghiamo a una funzione dedicata per gestire UI + log
-          handleLightboxCallback(response);
-        });
-
-        showMessage('✓ Lightbox aperto! Completa il pagamento nel popup.', 'success');
-
-        return true;
-
-      } catch (error) {
-        console.error('Errore apertura Lightbox:', error);
-
-        // Se fallisce l’apertura, il pagamento non è “in corso”
-        lightboxOpen = false;
-
-        throw error;
+    // =====================================================
+    // (1) CALLBACK
+    // - Questa funzione viene passata a axerve.lightBox.open(...)
+    // - Qui fai:
+    //   a) log response
+    //   b) chiusura lightbox (closeLightBox) se disponibile
+    //   c) gestione UI (OK/KO/XX)
+    // =====================================================
+    function onAxerveLightboxResult(response) {
+      // Stop timeout diagnostico
+      if (callbackTimeoutId) {
+        clearTimeout(callbackTimeoutId);
+        callbackTimeoutId = null;
       }
+
+      // Fine "pagamento in corso"
+      lightboxOpen = false;
+
+      // Log “pulito”
+      log('✅ Callback ricevuta:', response);
+
+      // Prova a chiudere overlay Lightbox:
+      // In questa versione dello script Axerve la funzione è globale: closeLightBox()
+      try {
+        if (typeof closeLightBox === 'function') {
+          log('🔒 Chiusura lightbox via closeLightBox()');
+          closeLightBox();
+        } else {
+          warn('⚠ closeLightBox() non disponibile (versione SDK diversa?)');
+        }
+      } catch (e) {
+        warn('⚠ Errore durante closeLightBox():', e);
+      }
+
+      // Gestisci esito sulla tua pagina
+      handleLightboxCallback(response);
+
+      // Alcuni SDK interpretano "return false" come “non fare redirect"
+      return false;
     }
 
-    // ---------------------------
-    // Gestione submit form
-    // ---------------------------
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      // Recupera i valori dai campi
-      const shopLogin = document.getElementById('shopLogin').value.trim();
-      const paymentID = document.getElementById('paymentID').value.trim();
-      const paymentToken = document.getElementById('paymentToken').value.trim();
-
-      // Valida gli input
-      const validationErrors = validateInputs(shopLogin, paymentID, paymentToken);
-
-      if (validationErrors.length > 0) {
-        showMessage('Errori di validazione: ' + validationErrors.join(', '), 'error');
-        return;
-      }
-
-      try {
-        setLoading(true);
-        showMessage('Configurazione Lightbox in corso...', 'info');
-
-        // Breve delay per mostrare il messaggio
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        // Apri il Lightbox
-        openLightbox(shopLogin, paymentID, paymentToken);
-
-      } catch (error) {
-        console.error('Errore:', error);
-        showMessage('Errore: ' + error.message, 'error');
-      } finally {
-        // Nota: questo riabilita il bottone subito dopo open
-        // ed è ok, perché l’utente potrebbe voler riprovare.
-        // Per intercettare l’uscita dalla pagina usiamo lightboxOpen.
-        setLoading(false);
-      }
-    });
-
-    // ---------------------------
-    // Gestione callback dal Lightbox
-    // ---------------------------
+    // =====================================================
+    // (2) PARSER + UI
+    // Nota: la doc indica response = oggetto con status OK/KO (+paymentId, responseURL, error)
+    // Qui supportiamo anche eventuale MessageEvent (per robustezza).
+    // =====================================================
     function handleLightboxCallback(responseOrEvent) {
-      // Compatibilità: se per qualche motivo arriva un MessageEvent (non previsto dalla doc), lo gestiamo senza rompere il flusso.
       const isMessageEvent =
         responseOrEvent &&
         typeof responseOrEvent === 'object' &&
@@ -588,88 +490,145 @@
 
       const response = isMessageEvent ? responseOrEvent.data : responseOrEvent;
 
-      console.log('📩 handleLightboxCallback called. isMessageEvent=', isMessageEvent);
-      if (isMessageEvent) {
-        console.log('   origin:', responseOrEvent.origin);
+      log('📩 handleLightboxCallback() called', { isMessageEvent });
+      if (isMessageEvent) log('   origin:', responseOrEvent.origin);
+      log('   payload:', response);
+
+      if (!response) {
+        warn('⚠ Callback senza payload (response nullo/undefined)');
+        showMessage('⚠ Callback ricevuta ma payload vuoto', 'warning');
+        return;
       }
-      console.log('   payload:', response);
 
-      if (!response) return;
-
-      // Status da doc: "OK" oppure "KO"
-      const status = response.status;
-
-      // PaymentId: doc usa paymentId (camelCase). In alcune integrazioni può arrivare come paymentID.
+      const status = response.status; // "OK" / "KO" / "XX" (dipende dal flusso)
       const paymentId = response.paymentId || response.paymentID;
+      const responseURL = response.responseURL;
+      const err = response.error;
 
-      // error: oggetto con code/description (può essere null)
-      const error = response.error;
+      log('   parsed:', { status, paymentId, responseURL, error: err });
 
-      // Log dettagliato per debug
-      console.log('   parsed:', {
-        status,
-        paymentId,
-        error,
-        responseURL: response.responseURL
-      });
-
-      // Gestione esito
       if (status === 'OK') {
         showMessage('✓ Pagamento completato con successo! (OK)', 'success');
       } else if (status === 'KO') {
-        const errMsg = error?.description || 'Pagamento rifiutato (KO)';
+        const errMsg = (err && err.description) ? err.description : 'Pagamento rifiutato (KO)';
         showMessage('✗ Pagamento fallito: ' + errMsg, 'error');
       } else if (status === 'XX') {
-        const errMsg = error?.description || 'Pagamento in attesa (XX)';
-        showMessage('Pagamento in attesa di conferma! (XX)', 'pending');
+        showMessage('⏳ Pagamento in attesa di conferma! (XX)', 'pending');
       } else {
-        // Status non previsto: lo mostriamo per capire cosa arriva davvero
-        showMessage('⚠ Callback ricevuta con status inatteso: ' + String(status), 'warning');
+        showMessage('⚠ Status inatteso: ' + String(status), 'warning');
       }
 
-      // Se hai paymentId, loggalo (utile per verify server-side)
       if (paymentId) {
-        console.log('Payment ID dalla callback:', paymentId);
-        // Qui potresti chiamare il server per verificare lo stato (consigliato per sicurezza)
+        log('Payment ID:', paymentId);
+        log('Check server side - OK (simulato)');
+        // Qui (in produzione) è buona pratica verificare server-side lo stato reale:
         // verifyPaymentOnServer(paymentId);
       }
     }
 
-    // ---------------------------
-    // Funzione helper per verificare il pagamento sul server (da implementare)
-    // Utile soprattutto per i pagamenti in attesa (XX)
-    // ---------------------------
-    async function verifyPaymentOnServer(paymentID) {
-      try {
-        console.log('Verifica pagamento sul server:', paymentID);
-        showMessage('⚠ Implementa la verifica pagamento sul server', 'warning');
-      } catch (error) {
-        console.error('Errore verifica pagamento:', error);
-        showMessage('Errore durante la verifica del pagamento', 'error');
+    // =====================================================
+    // (3) OPEN LIGHTBOX
+    // - set shop
+    // - open(..., onAxerveLightboxResult)
+    // - timeout se callback non arriva
+    // =====================================================
+    function openLightbox(shopLogin, paymentID, paymentToken) {
+      // Verifica libreria
+      if (typeof axerve === 'undefined' || !axerve.lightBox || typeof axerve.lightBox.open !== 'function') {
+        throw new Error('Libreria Axerve non caricata o incompleta. Controlla lo script axerve.js.');
       }
+
+      // Log parametri (token parziale)
+      log('Apertura Lightbox con:', {
+        shopLogin,
+        paymentID,
+        paymentToken: paymentToken.substring(0, 8) + '...'
+      });
+
+      // Imposta shop login
+      axerve.lightBox.shop = shopLogin;
+
+      // Stato “in corso”
+      lightboxOpen = true;
+
+      // Timeout diagnostico: se non arriva callback, lo segnaliamo 
+      if (callbackTimeoutId) clearTimeout(callbackTimeoutId);
+      callbackTimeoutId = setTimeout(() => {
+        warn(`⏰ Nessuna callback entro ${CALLBACK_TIMEOUT_MS/1000}s. Possibile redirect/config backoffice o flusso non finalizzato.`);
+        showMessage(`⚠ Nessuna callback entro ${CALLBACK_TIMEOUT_MS/1000}s. Controlla configurazione redirect/backoffice e console.`, 'warning');
+      }, CALLBACK_TIMEOUT_MS);
+
+      // Apri Lightbox con callback esterna
+      axerve.lightBox.open(paymentID, paymentToken, onAxerveLightboxResult);
+
+      showMessage('✓ Lightbox aperto! Completa il pagamento nel popup.', 'success');
     }
 
-    // ---------------------------
-    // Log iniziale
-    // ---------------------------
-    console.log('===================================');
-    console.log('Fabrick Lightbox Payment - Ready');
-    console.log('===================================');
-    console.log('Istruzioni:');
-    console.log('1. Chiama POST /payment/create dal server');
-    console.log('2. Inserisci shopLogin, paymentID e paymentToken ricevuti');
-    console.log('3. Clicca "Apri Lightbox Pagamento"');
-    console.log('===================================');
+    // =====================================================
+    // (4) SUBMIT FORM
+    // =====================================================
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-    // ---------------------------
-    // Gestione chiusura/reload della pagina durante il pagamento
-    // ---------------------------
+      const shopLogin = document.getElementById('shopLogin').value.trim();
+      const paymentID = document.getElementById('paymentID').value.trim();
+      const paymentToken = document.getElementById('paymentToken').value.trim();
+
+      const validationErrors = validateInputs(shopLogin, paymentID, paymentToken);
+      if (validationErrors.length > 0) {
+        showMessage('Errori di validazione: ' + validationErrors.join(', '), 'error');
+        warn('Validation errors:', validationErrors);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        showMessage('Configurazione Lightbox in corso...', 'info');
+
+        // piccolo delay “UX”
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        openLightbox(shopLogin, paymentID, paymentToken);
+      } catch (err) {
+        error('Errore:', err);
+        showMessage('Errore: ' + (err && err.message ? err.message : String(err)), 'error');
+
+        // Se fallisce l’apertura, non è “in corso”
+        lightboxOpen = false;
+
+        // stop timeout
+        if (callbackTimeoutId) {
+          clearTimeout(callbackTimeoutId);
+          callbackTimeoutId = null;
+        }
+      } finally {
+        // Il bottone torna attivo (puoi riprovare anche se la lightbox è ancora aperta).
+        // Se vuoi impedirlo, commenta questa riga e riabilita solo a callback.
+        setLoading(false);
+      }
+    });
+
+    // =====================================================
+    // (5) BEFOREUNLOAD
+    // =====================================================
     window.addEventListener('beforeunload', (e) => {
       if (lightboxOpen) {
         e.preventDefault();
         e.returnValue = 'Il pagamento è in corso. Sei sicuro di voler uscire?';
       }
     });
+
+    // =====================================================
+    // LOG INIZIALE
+    // =====================================================
+    log('===================================');
+    log('Fabrick / Axerve Lightbox - Ready');
+    log('Origin pagina:', window.location.origin);
+    log('Istruzioni:');
+    log('1) Chiama POST /payment/create dal server');
+    log('2) Incolla shopLogin, paymentID, paymentToken');
+    log('3) Clicca "Apri Lightbox Pagamento"');
+    log('===================================');
   </script>
 </body>
 </html>
