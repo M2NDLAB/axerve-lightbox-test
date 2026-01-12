@@ -322,10 +322,15 @@
     <div class="api-example">
       <strong>🔧 Esempio Request Body Server:</strong>
       <pre><code>{
-  "shopLogin": "GESPAY00001",
-  "amount": "10.00",
-  "currency": "EUR",
-  "shopTransactionID": "FBK_OrderID_001"
+    "shopLogin": "GESPAY00001",
+    "amount": "10.00",
+    "currency": "EUR",
+    "shopTransactionID": "FBK_OrderID_001"    
+    "responseURLs": {  //callback on this page to close the pop-up
+          "buyerOK": "https://m2ndlab.github.io/axerve-lightbox-test/",
+          "buyerKO": "https://m2ndlab.github.io/axerve-lightbox-test/",
+          "serverNotificationURL": ""
+      }
 }</code></pre>
     </div>
 
@@ -560,3 +565,4 @@
   </script>
 </body>
 </html>
+
