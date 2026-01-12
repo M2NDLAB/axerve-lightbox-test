@@ -234,8 +234,8 @@
   <div class="container">
     <div class="header">
       <div class="logo">💳</div>
-      <h1>Pagamento</h1>
-      <p class="subtitle">Fabrick Lightbox</p>
+      <h1>Fabrick Payment</h1>
+      <p class="subtitle">Lightbox</p>
     </div>
 
     <form id="paymentForm" novalidate>
@@ -245,11 +245,10 @@
           type="text"
           id="shopLogin"
           placeholder="GESPAY00001"
-          value="GESPAY00001"
           autocomplete="off"
           required
         />
-        <small class="field-hint">Codice esercente fornito da Fabrick</small>
+        <small class="field-hint">Codice esercente</small>
       </div>
 
       <div class="form-group">
@@ -261,7 +260,7 @@
           autocomplete="off"
           required
         />
-        <small class="field-hint">ID transazione ricevuto dal server</small>
+        <small class="field-hint">ID transazione generato dal server</small>
       </div>
 
       <div class="form-group">
@@ -273,7 +272,7 @@
           autocomplete="off"
           required
         />
-        <small class="field-hint">Token ricevuto dal server</small>
+        <small class="field-hint">Token generato dal server</small>
       </div>
 
       <button type="submit" class="pay-button" id="payButton">
@@ -296,15 +295,15 @@
     <div class="api-example">
       <strong>🔧 Esempio Request Body Server:</strong>
       <pre><code>{
-    "shopLogin": "GESPAY00001",
-    "amount": 10.00,
-    "currency": "EUR",
-    "shopTransactionID": "FBK_OrderID_001"    
-    "responseURLs": {  //callback on this page to close the pop-up
-          "buyerOK": "https://m2ndlab.github.io/axerve-lightbox-test/",
-          "buyerKO": "https://m2ndlab.github.io/axerve-lightbox-test/",
-          "serverNotificationURL": ""
-      }
+  "shopLogin": "GESPAY00001",
+  "amount": 10.00,
+  "currency": "EUR",
+  "shopTransactionID": "FBK_OrderID_001"    
+  "responseURLs": {  //callback on this page to close the pop-up
+    "buyerOK": "https://m2ndlab.github.io/axerve-lightbox-test/",
+    "buyerKO": "https://m2ndlab.github.io/axerve-lightbox-test/",
+    "serverNotificationURL": ""
+   }
 }</code></pre>
     </div>
 
@@ -315,8 +314,10 @@
       </svg>
       Pagamento sicuro con 3D Secure 2.0
     </div>
-    <p class="subtitle">Powered by M2NDLAB</p>
   </div>
+    <div class="container">
+      <p class="subtitle">Powered by M2NDLAB</p>
+    </div>
   
 
   <script src="https://sandbox.gestpay.net/pagam/javascript/axerve.js"></script>
@@ -541,5 +542,6 @@
   </script>
 </body>
 </html>
+
 
 
