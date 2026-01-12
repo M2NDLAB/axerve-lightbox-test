@@ -5,12 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fabrick Lightbox - Test</title>
 
-  <!-- =====================================================
-       CSS INLINE 
-       Note:
-       - classi "status-message.*" controllate dal JS
-       - .spinner viene inserito dal JS nel bottone
-       ===================================================== -->
   <style>
     /* Reset base */
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -136,7 +130,7 @@
     .pay-button:active:not(:disabled) { transform: translateY(0); }
     .pay-button:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    /* Spinner (inserito dal JS dentro #buttonText) */
+    /* Spinner */
     .spinner {
       display: inline-block;
       width: 16px;
@@ -150,13 +144,13 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Box messaggi (gestito dal JS) */
+    /* Box messaggi */
     .status-message {
       margin-top: 20px;
       padding: 16px;
       border-radius: 8px;
       font-size: 14px;
-      display: none; /* il JS lo mostra/nasconde */
+      display: none;
       animation: fadeIn 0.3s ease;
     }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -252,9 +246,6 @@
 </head>
 
 <body>
-  <!-- =====================================================
-       HTML
-       ===================================================== -->
   <div class="container">
     <div class="header">
       <div class="logo">💳</div>
@@ -273,11 +264,6 @@
       </div>
     </div>
 
-    <!--
-      Form manuale per test:
-      - Inserisci shopLogin, paymentID e paymentToken ottenuti dal backend (payment/create)
-      - Il JS intercetta submit e chiama axerve.lightBox.open(...)
-    -->
     <form id="paymentForm" novalidate>
       <div class="form-group">
         <label for="shopLogin">Shop Login</label>
@@ -321,7 +307,6 @@
       </button>
     </form>
 
-    <!-- Area messaggi (controllata dal JS) -->
     <div id="statusMessage" class="status-message"></div>
 
     <div class="note">
@@ -353,24 +338,11 @@
     </div>
   </div>
 
-  <!-- =====================================================
-       Axerve.js (IMPORTANTE: deve stare PRIMA del tuo JS)
-       Sandbox:    https://sandbox.gestpay.net/pagam/javascript/axerve.js
-       Produzione: https://ecomm.sella.it/pagam/javascript/axerve.js
-       ===================================================== -->
   <script src="https://sandbox.gestpay.net/pagam/javascript/axerve.js"></script>
 
-  <!-- =====================================================
-       JS INLINE
-       - aprire la Lightbox con open(paymentID, token, callback)
-       - gestire l’esito nella tua pagina
-       - per sicurezza chiudere la Lightbox con closeLightBox() (funzione globale di axerve.js, chiamata di default a conclusione pagamento dal js)
-       - log per debug
-       ===================================================== -->
   <script>
     // =====================================================
     // CONFIG DEBUG
-    // - abilita/disabilita log senza toccare il codice
     // =====================================================
     const DEBUG = true;
     const LOG_PREFIX = '[AXERVE-LB]';
@@ -387,11 +359,7 @@
     const buttonText = document.getElementById('buttonText');
     const statusMessage = document.getElementById('statusMessage');
 
-    // Stato “pagamento in corso”:
-    // - serve solo per beforeunload (evita uscita accidentale)
     let lightboxOpen = false;
-
-    // Timeout diagnostico: se la callback non arriva entro X secondi
     let callbackTimeoutId = null;
     const CALLBACK_TIMEOUT_MS = 60000;
 
@@ -436,50 +404,26 @@
     }
 
     // =====================================================
-    // (1) CALLBACK
-    // - Questa funzione viene passata a axerve.lightBox.open(...)
-    // - Qui fai:
-    //   a) log response
-    //   b) chiusura lightbox (closeLightBox) se disponibile
-    //   c) gestione UI (OK/KO/XX)
+    // CALLBACK - La Lightbox chiude automaticamente
     // =====================================================
     function onAxerveLightboxResult(response) {
-      // Stop timeout diagnostico
       if (callbackTimeoutId) {
         clearTimeout(callbackTimeoutId);
         callbackTimeoutId = null;
       }
 
-      // Fine "pagamento in corso"
       lightboxOpen = false;
 
-      // Log “pulito”
       log('✅ Callback ricevuta:', response);
+      log('ℹ️ La Lightbox si chiude automaticamente');
 
-      // Prova a chiudere overlay Lightbox:
-      // In questa versione dello script Axerve la funzione è globale: closeLightBox()
-      try {
-        if (typeof closeLightBox === 'function') {
-          log('🔒 Chiusura lightbox via closeLightBox()');
-          closeLightBox();
-        } else {
-          warn('⚠ closeLightBox() non disponibile (versione SDK diversa?)');
-        }
-      } catch (e) {
-        warn('⚠ Errore durante closeLightBox():', e);
-      }
-
-      // Gestisci esito sulla tua pagina
       handleLightboxCallback(response);
 
-      // Alcuni SDK interpretano "return false" come “non fare redirect"
       return false;
     }
 
     // =====================================================
-    // (2) PARSER + UI
-    // Nota: la doc indica response = oggetto con status OK/KO (+paymentId, responseURL, error)
-    // Qui supportiamo anche eventuale MessageEvent (per robustezza).
+    // PARSER + UI
     // =====================================================
     function handleLightboxCallback(responseOrEvent) {
       const isMessageEvent =
@@ -500,7 +444,7 @@
         return;
       }
 
-      const status = response.status; // "OK" / "KO" / "XX" (dipende dal flusso)
+      const status = response.status;
       const paymentId = response.paymentId || response.paymentID;
       const responseURL = response.responseURL;
       const err = response.error;
@@ -520,52 +464,41 @@
 
       if (paymentId) {
         log('Payment ID:', paymentId);
-        log('Check server side - OK (simulato)');
-        // Qui (in produzione) è buona pratica verificare server-side lo stato reale:
-        // verifyPaymentOnServer(paymentId);
+        log('💡 Verifica server-side consigliata con GET /payment/detail');
+        // In produzione: verifyPaymentOnServer(paymentId);
       }
     }
 
     // =====================================================
-    // (3) OPEN LIGHTBOX
-    // - set shop
-    // - open(..., onAxerveLightboxResult)
-    // - timeout se callback non arriva
+    // OPEN LIGHTBOX
     // =====================================================
     function openLightbox(shopLogin, paymentID, paymentToken) {
-      // Verifica libreria
       if (typeof axerve === 'undefined' || !axerve.lightBox || typeof axerve.lightBox.open !== 'function') {
         throw new Error('Libreria Axerve non caricata o incompleta. Controlla lo script axerve.js.');
       }
 
-      // Log parametri (token parziale)
       log('Apertura Lightbox con:', {
         shopLogin,
         paymentID,
         paymentToken: paymentToken.substring(0, 8) + '...'
       });
 
-      // Imposta shop login
       axerve.lightBox.shop = shopLogin;
-
-      // Stato “in corso”
       lightboxOpen = true;
 
-      // Timeout diagnostico: se non arriva callback, lo segnaliamo 
       if (callbackTimeoutId) clearTimeout(callbackTimeoutId);
       callbackTimeoutId = setTimeout(() => {
-        warn(`⏰ Nessuna callback entro ${CALLBACK_TIMEOUT_MS/1000}s. Possibile redirect/config backoffice o flusso non finalizzato.`);
-        showMessage(`⚠ Nessuna callback entro ${CALLBACK_TIMEOUT_MS/1000}s. Controlla configurazione redirect/backoffice e console.`, 'warning');
+        warn(`⏰ Nessuna callback entro ${CALLBACK_TIMEOUT_MS/1000}s. Possibile redirect/config backoffice.`);
+        showMessage(`⚠ Nessuna callback entro ${CALLBACK_TIMEOUT_MS/1000}s. Controlla configurazione.`, 'warning');
       }, CALLBACK_TIMEOUT_MS);
 
-      // Apri Lightbox con callback esterna
       axerve.lightBox.open(paymentID, paymentToken, onAxerveLightboxResult);
 
       showMessage('✓ Lightbox aperto! Completa il pagamento nel popup.', 'success');
     }
 
     // =====================================================
-    // (4) SUBMIT FORM
+    // SUBMIT FORM
     // =====================================================
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -585,7 +518,6 @@
         setLoading(true);
         showMessage('Configurazione Lightbox in corso...', 'info');
 
-        // piccolo delay “UX”
         await new Promise(resolve => setTimeout(resolve, 300));
 
         openLightbox(shopLogin, paymentID, paymentToken);
@@ -593,23 +525,19 @@
         error('Errore:', err);
         showMessage('Errore: ' + (err && err.message ? err.message : String(err)), 'error');
 
-        // Se fallisce l’apertura, non è “in corso”
         lightboxOpen = false;
 
-        // stop timeout
         if (callbackTimeoutId) {
           clearTimeout(callbackTimeoutId);
           callbackTimeoutId = null;
         }
       } finally {
-        // Il bottone torna attivo (puoi riprovare anche se la lightbox è ancora aperta).
-        // Se vuoi impedirlo, commenta questa riga e riabilita solo a callback.
         setLoading(false);
       }
     });
 
     // =====================================================
-    // (5) BEFOREUNLOAD
+    // BEFOREUNLOAD
     // =====================================================
     window.addEventListener('beforeunload', (e) => {
       if (lightboxOpen) {
