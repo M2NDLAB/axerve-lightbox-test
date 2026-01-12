@@ -53,21 +53,6 @@
     h1 { color: #2d3748; font-size: 28px; margin-bottom: 10px; }
     .subtitle { color: #718096; font-size: 14px; }
 
-    .payment-info {
-      background: #f7fafc;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 30px;
-    }
-
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 12px 0;
-      border-bottom: 1px solid #e2e8f0;
-    }
-    .info-row:last-child { border-bottom: none; }
-
     .info-label { color: #718096; font-size: 14px; }
     .info-value { color: #2d3748; font-weight: 600; font-size: 14px; }
 
@@ -250,18 +235,7 @@
     <div class="header">
       <div class="logo">💳</div>
       <h1>Pagamento</h1>
-      <p class="subtitle">Powered by Fabrick / Axerve Lightbox</p>
-    </div>
-
-    <div class="payment-info">
-      <div class="info-row">
-        <span class="info-label">Tipo transazione</span>
-        <span class="info-value">Pagamento</span>
-      </div>
-      <div class="info-row">
-        <span class="info-label">Metodo</span>
-        <span class="info-value">Carta / APM (es. PayPal)</span>
-      </div>
+      <p class="subtitle">Fabrick Lightbox</p>
     </div>
 
     <form id="paymentForm" novalidate>
@@ -303,7 +277,7 @@
       </div>
 
       <button type="submit" class="pay-button" id="payButton">
-        <span id="buttonText">Apri Lightbox Pagamento</span>
+        <span id="buttonText">Apri Lightbox</span>
       </button>
     </form>
 
@@ -315,7 +289,7 @@
         <li>Effettua la chiamata <code>POST /payment/create</code> dal tuo server</li>
         <li>Ricevi <code>paymentID</code> e <code>paymentToken</code> nella risposta</li>
         <li>Inserisci i dati nei campi sopra</li>
-        <li>Clicca su "Apri Lightbox Pagamento"</li>
+        <li>Clicca su "Apri Lightbox"</li>
       </ol>
     </div>
 
@@ -323,7 +297,7 @@
       <strong>🔧 Esempio Request Body Server:</strong>
       <pre><code>{
     "shopLogin": "GESPAY00001",
-    "amount": "10.00",
+    "amount": 10.00,
     "currency": "EUR",
     "shopTransactionID": "FBK_OrderID_001"    
     "responseURLs": {  //callback on this page to close the pop-up
@@ -341,7 +315,9 @@
       </svg>
       Pagamento sicuro con 3D Secure 2.0
     </div>
+    <p class="subtitle">Powered by M2NDLAB</p>
   </div>
+  
 
   <script src="https://sandbox.gestpay.net/pagam/javascript/axerve.js"></script>
 
@@ -386,7 +362,7 @@
         buttonText.innerHTML = '<span class="spinner"></span>Apertura in corso...';
       } else {
         payButton.disabled = false;
-        buttonText.textContent = 'Apri Lightbox Pagamento';
+        buttonText.textContent = 'Apri Lightbox';
       }
     }
 
@@ -555,7 +531,7 @@
     // LOG INIZIALE
     // =====================================================
     log('===================================');
-    log('Fabrick / Axerve Lightbox - Ready');
+    log('Fabrick Lightbox - Ready');
     log('Origin pagina:', window.location.origin);
     log('Istruzioni:');
     log('1) Chiama POST /payment/create dal server');
@@ -565,4 +541,5 @@
   </script>
 </body>
 </html>
+
 
