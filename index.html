@@ -393,6 +393,10 @@
       lightboxOpen = false;
 
       log('✅ Callback ricevuta:', response);
+      log('📦 Response completo:', JSON.stringify(response, null, 2));
+      log('🔍 response.responseURL:', response.responseURL);
+      log('🔍 response.status:', response.status);
+      log('🔍 response.paymentId:', response.paymentId);
       log('ℹ️ La Lightbox si chiude automaticamente');
 
       handleLightboxCallback(response);
@@ -542,6 +546,7 @@
   </script>
 </body>
 </html>
+
 
 
 
