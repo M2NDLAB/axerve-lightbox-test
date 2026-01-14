@@ -401,6 +401,17 @@
 
       handleLightboxCallback(response);
 
+      // Commentare  le righe sotto per disabilitare il redirect automatico
+      ///*
+      if (response.responseURL) {
+        showMessage('🔄 Redirect verso:'+ response.responseURL +' tra 10s', 'info');
+        log('🔄 Redirect verso:', response.responseURL);
+        setTimeout(() => {
+          window.location.href = response.responseURL;
+        }, 10000); // Aspetta 10s per mostrare il messaggio
+      }
+      //*/
+
       return false;
     }
 
@@ -478,7 +489,7 @@
         showMessage(`⚠ Nessuna callback entro ${CALLBACK_TIMEOUT_MS/1000}s. Controlla configurazione.`, 'warning');
       }, CALLBACK_TIMEOUT_MS);
 
-      axerve.lightBox.open(paymentID, paymentToken, onAxerveLightboxResult);
+      axerve.lightBox.open(paymentID, paymentToken);//, onAxerveLightboxResult);
 
       showMessage('✓ Lightbox aperto! Completa il pagamento nel popup.', 'success');
     }
@@ -546,6 +557,7 @@
   </script>
 </body>
 </html>
+
 
 
 
