@@ -401,17 +401,6 @@
 
       handleLightboxCallback(response);
 
-      // Commentare  le righe sotto per disabilitare il redirect automatico
-      ///*
-      if (response.responseURL) {
-        showMessage('🔄 Redirect verso:'+ response.responseURL +' tra 10s', 'info');
-        log('🔄 Redirect verso:', response.responseURL);
-        setTimeout(() => {
-          window.location.href = response.responseURL;
-        }, 10000); // Aspetta 10s per mostrare il messaggio
-      }
-      //*/
-
       return false;
     }
 
@@ -430,6 +419,8 @@
       log('📩 handleLightboxCallback() called', { isMessageEvent });
       if (isMessageEvent) log('   origin:', responseOrEvent.origin);
       log('   payload:', response);
+      
+      log('reponse :', JSON.stringify(response, null, 2));
 
       if (!response) {
         warn('⚠ Callback senza payload (response nullo/undefined)');
@@ -440,9 +431,10 @@
       const status = response.status;
       const paymentId = response.paymentId || response.paymentID;
       const responseURL = response.responseURL;
-      const err = response.error;
+      const errcode = response.error.code;
+      const errdesc = response.error.description;
 
-      log('   parsed:', { status, paymentId, responseURL, error: err });
+      log('   parsed:', { status, paymentId, responseURL, errcode,errdesc });
 
       if (status === 'OK') {
         showMessage('✓ Pagamento completato con successo! (OK)', 'success');
@@ -557,6 +549,7 @@
   </script>
 </body>
 </html>
+
 
 
 
