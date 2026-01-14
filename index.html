@@ -298,12 +298,7 @@
   "shopLogin": "GESPAY00001",
   "amount": 10.00,
   "currency": "EUR",
-  "shopTransactionID": "FBK_OrderID_001"    
-  "responseURLs": {  //callback on this page to close the pop-up
-    "buyerOK": "https://m2ndlab.github.io/axerve-lightbox-test/",
-    "buyerKO": "https://m2ndlab.github.io/axerve-lightbox-test/",
-    "serverNotificationURL": ""
-   }
+  "shopTransactionID": "FBK_OrderID_001"
 }</code></pre>
     </div>
 
@@ -479,7 +474,7 @@
         showMessage(`⚠ Nessuna callback entro ${CALLBACK_TIMEOUT_MS/1000}s. Controlla configurazione.`, 'warning');
       }, CALLBACK_TIMEOUT_MS);
 
-      axerve.lightBox.open(paymentID, paymentToken); // onAxerveLightboxResult);
+      axerve.lightBox.open(paymentID, paymentToken, onAxerveLightboxResult);
 
       showMessage('✓ Lightbox aperto! Completa il pagamento nel popup.', 'success');
     }
@@ -547,6 +542,7 @@
   </script>
 </body>
 </html>
+
 
 
 
