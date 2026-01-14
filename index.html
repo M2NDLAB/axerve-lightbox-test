@@ -478,7 +478,7 @@
         showMessage(`⚠ Nessuna callback entro ${CALLBACK_TIMEOUT_MS/1000}s. Controlla configurazione.`, 'warning');
       }, CALLBACK_TIMEOUT_MS);
 
-      axerve.lightBox.open(paymentID, paymentToken, onAxerveLightboxResult,window);
+      axerve.lightBox.open(paymentID, paymentToken, onAxerveLightboxResult);
 
       showMessage('✓ Lightbox aperto! Completa il pagamento nel popup.', 'success');
     }
@@ -546,6 +546,7 @@
   </script>
 </body>
 </html>
+
 
 
 
