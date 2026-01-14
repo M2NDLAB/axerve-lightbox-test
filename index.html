@@ -429,10 +429,9 @@
       const status = response.status;
       const paymentId = response.paymentId || response.paymentID;
       const responseURL = response.responseURL;
-      const errcode = response.error.code;
-      const errdesc = response.error.description;
+      const err = response.error;
 
-      log('   parsed:', { status, paymentId, responseURL, errcode,errdesc });
+      log('   parsed:', { status, paymentId, responseURL, error: err });
 
       if (status === 'OK') {
         showMessage('✓ Pagamento completato con successo! (OK)', 'success');
@@ -479,7 +478,7 @@
         showMessage(`⚠ Nessuna callback entro ${CALLBACK_TIMEOUT_MS/1000}s. Controlla configurazione.`, 'warning');
       }, CALLBACK_TIMEOUT_MS);
 
-      axerve.lightBox.open(paymentID, paymentToken, onAxerveLightboxResult);
+      axerve.lightBox.open(paymentID, paymentToken, onAxerveLightboxResult,window);
 
       showMessage('✓ Lightbox aperto! Completa il pagamento nel popup.', 'success');
     }
@@ -547,6 +546,7 @@
   </script>
 </body>
 </html>
+
 
 
 
