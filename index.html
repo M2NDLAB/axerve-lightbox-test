@@ -419,8 +419,6 @@
       log('📩 handleLightboxCallback() called', { isMessageEvent });
       if (isMessageEvent) log('   origin:', responseOrEvent.origin);
       log('   payload:', response);
-      
-      log('reponse :', JSON.stringify(response, null, 2));
 
       if (!response) {
         warn('⚠ Callback senza payload (response nullo/undefined)');
@@ -549,6 +547,7 @@
   </script>
 </body>
 </html>
+
 
 
 
