@@ -115,6 +115,9 @@
     .pay-button:active:not(:disabled) { transform: translateY(0); }
     .pay-button:disabled { opacity: 0.6; cursor: not-allowed; }
 
+    /*Radio Callback*/
+    input[type="radio"] { width: auto; padding: 0; margin-right: 6px; }
+    
     /* Spinner */
     .spinner {
       display: inline-block;
@@ -275,6 +278,24 @@
         <small class="field-hint">Token generato dal server</small>
       </div>
 
+      <div class="form-group">
+        <label>Gestione Callback</label>
+      
+        <label style="font-weight: normal;">
+          <input type="radio" name="callbackMode" value="enabled" checked />
+          Callback JS abilitata
+        </label>
+      
+        <label style="font-weight: normal; margin-top: 5px;">
+          <input type="radio" name="callbackMode" value="disabled" />
+          Callback JS disabilitata (solo redirect Axerve)
+        </label>
+      
+        <small class="field-hint">
+          Scegli se gestire l’esito via JavaScript o lasciare il redirect automatico
+        </small>
+      </div>
+
       <button type="submit" class="pay-button" id="payButton">
         <span id="buttonText">Apri Lightbox</span>
       </button>
@@ -340,6 +361,8 @@
     let lightboxOpen = false;
     let callbackTimeoutId = null;
     const CALLBACK_TIMEOUT_MS = 60000;
+    let callbackEnabled = true;
+
 
     // =====================================================
     // UI helpers
@@ -384,6 +407,13 @@
     // =====================================================
     // CALLBACK - La Lightbox chiude automaticamente
     // =====================================================
+    document.querySelectorAll('input[name="callbackMode"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        callbackEnabled = e.target.value === 'enabled';
+        log('🔁 Callback mode:', callbackEnabled ? 'ENABLED' : 'DISABLED');
+      });
+    });
+    
     function onAxerveLightboxResult(response) {
       if (callbackTimeoutId) {
         clearTimeout(callbackTimeoutId);
@@ -478,7 +508,7 @@
         showMessage(`⚠ Nessuna callback entro ${CALLBACK_TIMEOUT_MS/1000}s. Controlla configurazione.`, 'warning');
       }, CALLBACK_TIMEOUT_MS);
 
-      axerve.lightBox.open(paymentID, paymentToken, onAxerveLightboxResult);
+      axerve.lightBox.open(paymentID, paymentToken, callbackEnabled ? onAxerveLightboxResult : null);
 
       showMessage('✓ Lightbox aperto! Completa il pagamento nel popup.', 'success');
     }
@@ -546,6 +576,7 @@
   </script>
 </body>
 </html>
+
 
 
 
