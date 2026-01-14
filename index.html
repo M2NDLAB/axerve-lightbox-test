@@ -436,13 +436,17 @@
 
       if (status === 'OK') {
         showMessage('✓ Pagamento completato con successo! (OK)', 'success');
+        log('✓ Pagamento completato con successo! (OK)', 'success');
       } else if (status === 'KO') {
         const errMsg = (err && err.description) ? err.description : 'Pagamento rifiutato (KO)';
         showMessage('✗ Pagamento fallito: ' + errMsg, 'error');
+        log('✗ Pagamento fallito: ' + errMsg, 'error');
       } else if (status === 'XX') {
         showMessage('⏳ Pagamento in attesa di conferma! (XX)', 'pending');
+        log('⏳ Pagamento in attesa di conferma! (XX)', 'pending');
       } else {
         showMessage('⚠ Status inatteso: ' + String(status), 'warning');
+        log('⚠ Status inatteso: ' + String(status), 'warning');
       }
 
       if (paymentId) {
@@ -475,7 +479,7 @@
         showMessage(`⚠ Nessuna callback entro ${CALLBACK_TIMEOUT_MS/1000}s. Controlla configurazione.`, 'warning');
       }, CALLBACK_TIMEOUT_MS);
 
-      axerve.lightBox.open(paymentID, paymentToken, onAxerveLightboxResult);
+      axerve.lightBox.open(paymentID, paymentToken); // onAxerveLightboxResult);
 
       showMessage('✓ Lightbox aperto! Completa il pagamento nel popup.', 'success');
     }
@@ -543,6 +547,7 @@
   </script>
 </body>
 </html>
+
 
 
 
