@@ -1,624 +1,790 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fabrick Lightbox - Test</title>
-
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Axerve Lightbox — Fabrick Sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
   <style>
-    /* Reset base */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg:#090E1C; --surface:#101828; --surf2:#141F35; --surf3:#1A2845;
+      --border:#1E2F4A; --border2:#28436B; --accent:#2563EB; --accent-l:#60A5FA;
+      --accent-g:rgba(37,99,235,.18); --green:#10B981; --yellow:#F59E0B;
+      --red:#EF4444; --orange:#F97316; --purple:#A78BFA;
+      --text:#F0F5FF; --text2:#C5D4EE; --muted:#8098C0; --code:#060C18;
+      --r:12px; --rsm:7px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth;background:var(--bg)}
+    body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;line-height:1.6;min-height:100vh;display:flex;flex-direction:column}
+    body::before{content:'';position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(37,99,235,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(37,99,235,.055) 1px,transparent 1px);background-size:52px 52px;pointer-events:none}
+    body::after{content:'';position:fixed;top:-200px;left:50%;transform:translateX(-50%);width:800px;height:500px;background:radial-gradient(ellipse,rgba(37,99,235,.1) 0%,transparent 70%);pointer-events:none;z-index:0}
+    .wrap{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:0 24px 80px;flex:1}
 
-    /* Layout pagina */
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
+    /* HERO */
+    .hero{padding:44px 0 32px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px}
+    .badge{display:inline-flex;align-items:center;gap:7px;background:rgba(37,99,235,.1);color:var(--accent-l);border:1px solid rgba(37,99,235,.3);border-radius:99px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;padding:4px 14px;margin-bottom:4px}
+    .bdot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1.8s infinite;flex-shrink:0}
+    .hero h1{font-size:clamp(1.9rem,4vw,2.9rem);font-weight:800;letter-spacing:-.03em;line-height:1.1}
+    .hero h1 em{font-style:normal;color:var(--accent-l)}
+    .hero-sub{color:var(--text2);font-size:14px;max-width:520px;line-height:1.6}
+    .hero-sub code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent-l);background:var(--accent-g);padding:1px 6px;border-radius:3px}
 
-    /* Card centrale */
-    .container {
-      background: #fff;
-      border-radius: 20px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      max-width: 600px;
-      width: 100%;
-      padding: 40px;
-      animation: slideUp 0.5s ease-out;
-    }
+    /* SDK STATUS BANNER */
+    .sdk-banner{display:none;margin-bottom:16px;border-radius:var(--r);padding:12px 18px;border:1px solid;animation:fadeIn .4s ease;font-family:'JetBrains Mono',monospace;font-size:11px;display:flex;align-items:center;gap:10px}
+    .sdk-banner.ok{background:rgba(16,185,129,.07);border-color:rgba(16,185,129,.3);color:var(--green)}
+    .sdk-banner.ko{background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.3);color:var(--red)}
+    .sdk-banner .sdk-dot{width:8px;height:8px;border-radius:50%;background:currentColor;flex-shrink:0}
+    .sdk-banner.ok .sdk-dot{animation:blink 1.8s infinite}
 
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+    /* CREDENTIALS BOX */
+    .cred-box{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--orange);border-radius:var(--r);padding:16px 20px;margin-bottom:16px}
+    .cred-title{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+    .field-grid{display:flex;flex-direction:column;gap:14px}
+    .field{display:flex;flex-direction:column;gap:5px}
+    .field label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+    .field label .req{color:var(--red);font-weight:700}
+    .field input{background:var(--code);border:1px solid var(--border2);color:var(--text);border-radius:var(--rsm);padding:10px 13px;font-family:'JetBrains Mono',monospace;font-size:12px;width:100%;outline:none;transition:border-color .18s,box-shadow .18s}
+    .field input::placeholder{color:var(--muted);opacity:.45}
+    .field input:focus{border-color:var(--accent-l);box-shadow:0 0 0 3px var(--accent-g)}
+    .field input.invalid{border-color:rgba(239,68,68,.5)}
+    .field-hint{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px}
+    .field-hint.err{color:var(--red)}
 
-    .header { text-align: center; margin-bottom: 30px; }
+    /* BOXES (generici come in Pay By Link) */
+    .box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:16px}
+    .box.handshake{border-left:3px solid var(--purple)}
+    .box-header{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;background:var(--surf2);border-bottom:1px solid var(--border)}
+    .box-label{display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+    .box-dot{width:7px;height:7px;border-radius:50%;background:var(--accent-l)}
+    .box-dot.purple{background:var(--purple)}
+    .box-dot.green{background:var(--green);animation:blink 1.8s infinite}
+    .box-dot.red{background:var(--red)}
+    .box-dot.yellow{background:var(--yellow);animation:blink 1.8s infinite}
+    .box-body{padding:16px 20px}
+    .box-actions{display:flex;gap:6px}
 
-    .logo {
-      width: 60px;
-      height: 60px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-radius: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 20px;
-      font-size: 28px;
-    }
+    /* CALLBACK PILLS (stile channel pills PBL) */
+    .cb-pills{display:flex;gap:6px;padding:12px 16px;border-top:1px solid var(--border);background:rgba(37,99,235,.03);flex-wrap:wrap;align-items:center}
+    .cb-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+    .cb-pill{padding:5px 16px;border-radius:99px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:var(--surf3);color:var(--muted);transition:all .15s;user-select:none;display:inline-flex;align-items:center;gap:6px}
+    .cb-pill:hover{border-color:var(--accent-l);color:var(--accent-l)}
+    .cb-pill.active{background:var(--accent-g);border-color:rgba(37,99,235,.5);color:var(--accent-l)}
+    .cb-pill-dot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.55}
+    .cb-pill.active .cb-pill-dot{opacity:1}
 
-    h1 { color: #2d3748; font-size: 28px; margin-bottom: 10px; }
-    .subtitle { color: #718096; font-size: 14px; }
+    /* VALIDATION BAR */
+    .validation-bar{padding:8px 16px;display:flex;align-items:flex-start;gap:8px;font-family:'JetBrains Mono',monospace;font-size:10px;border-top:1px solid var(--border);min-height:38px}
+    .vb-icon{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;margin-top:1px}
+    .vb-ok{background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.3)}
+    .vb-err{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+    .vb-warn{background:rgba(245,158,11,.12);color:var(--yellow);border:1px solid rgba(245,158,11,.3)}
+    #vb-msg{flex:1;color:var(--muted);line-height:1.5;white-space:pre-line}
+    #vb-msg.ok{color:var(--green)} #vb-msg.err{color:var(--red)} #vb-msg.warn{color:var(--yellow)}
 
-    .info-label { color: #718096; font-size: 14px; }
-    .info-value { color: #2d3748; font-weight: 600; font-size: 14px; }
+    /* SEND ROW */
+    .send-row{display:flex;gap:10px;margin-bottom:16px;align-items:center;flex-wrap:wrap}
+    .btn{display:inline-flex;align-items:center;gap:7px;padding:11px 22px;border-radius:var(--rsm);font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .18s;border:none;white-space:nowrap}
+    .btn-primary{background:var(--accent);color:#fff;box-shadow:0 3px 16px rgba(37,99,235,.3)}
+    .btn-primary:hover:not(:disabled){background:#1D4ED8;transform:translateY(-1px);box-shadow:0 4px 22px rgba(37,99,235,.45)}
+    .btn-primary:disabled{opacity:.45;cursor:not-allowed;transform:none}
+    .btn-ghost{background:rgba(255,255,255,.07);color:var(--text2);border:1px solid rgba(255,255,255,.18);font-size:13px;padding:9px 16px}
+    .btn-ghost:hover{border-color:var(--accent-l);color:var(--accent-l)}
+    .spin-ico{width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+    .status-badge{font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 12px;border-radius:99px;border:1px solid currentColor}
+    .sb-idle{color:var(--muted);border-color:var(--border2);background:transparent}
+    .sb-loading{color:var(--accent-l);border-color:rgba(37,99,235,.4);background:var(--accent-g)}
+    .sb-open{color:var(--yellow);border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.12)}
+    .sb-ok{color:var(--green);border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.1)}
+    .sb-err{color:var(--red);border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.1)}
+    .sb-pending{color:var(--purple);border-color:rgba(167,139,250,.4);background:rgba(167,139,250,.1)}
 
-    .form-group { margin-bottom: 20px; }
+    /* RESULT BOX */
+    .result-box{display:none;border-radius:var(--r);overflow:hidden;margin-bottom:16px;animation:fadeIn .3s ease}
+    .result-box.visible{display:block}
+    .result-box.ok    {border:1.5px solid rgba(16,185,129,.4); background:rgba(16,185,129,.05)}
+    .result-box.err   {border:1.5px solid rgba(239,68,68,.4);  background:rgba(239,68,68,.05)}
+    .result-box.warn  {border:1.5px solid rgba(245,158,11,.4); background:rgba(245,158,11,.05)}
+    .result-box.pend  {border:1.5px solid rgba(167,139,250,.4);background:rgba(167,139,250,.05)}
+    .result-header{display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px solid rgba(255,255,255,.06)}
+    .result-box.ok   .result-header{background:rgba(16,185,129,.08)}
+    .result-box.err  .result-header{background:rgba(239,68,68,.08)}
+    .result-box.warn .result-header{background:rgba(245,158,11,.08)}
+    .result-box.pend .result-header{background:rgba(167,139,250,.08)}
+    .result-header-text{flex:1}
+    .result-header-text h3{font-size:14px;font-weight:700;margin-bottom:2px}
+    .result-box.ok   .result-header-text h3{color:var(--green)}
+    .result-box.err  .result-header-text h3{color:var(--red)}
+    .result-box.warn .result-header-text h3{color:var(--yellow)}
+    .result-box.pend .result-header-text h3{color:var(--purple)}
+    .result-header-text p{font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+    .meta-pills{display:flex;flex-wrap:wrap;gap:7px;padding:12px 18px;border-top:1px solid rgba(255,255,255,.05)}
+    .meta-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:10px;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text2)}
+    .meta-pill span{color:var(--accent-l)}
+    .raw-payload{padding:14px 18px}
+    .raw-payload pre{background:var(--code);padding:14px 16px;border-radius:var(--rsm);font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text2);overflow-x:auto;line-height:1.6;max-height:240px;overflow-y:auto;white-space:pre-wrap;word-break:break-all}
 
-    label {
-      display: block;
-      color: #4a5568;
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
+    /* HINT DIAGNOSTICI (error code noti) */
+    .hint-wrap{padding:14px 18px;border-top:1px solid rgba(255,255,255,.05)}
+    .hint-title{display:flex;align-items:center;gap:7px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--yellow);margin-bottom:10px}
+    .hint-list{margin-left:20px;font-size:12.5px;color:var(--text2);line-height:1.7}
+    .hint-list li{margin-bottom:4px}
+    .hint-list li::marker{color:var(--yellow);font-weight:700}
 
-    .field-hint {
-      display: block;
-      color: #a0aec0;
-      font-size: 12px;
-      margin-top: 5px;
-      font-style: italic;
-    }
+    /* INFO NOTE */
+    .info-note{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent-l);border-radius:var(--r);padding:14px 20px;margin-bottom:16px;font-size:12.5px;color:var(--text2);line-height:1.7}
+    .info-note strong{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-l);display:block;margin-bottom:8px}
+    .info-note ol{margin-left:18px}
+    .info-note ol li{margin-bottom:4px}
+    .info-note code{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent-l);background:var(--accent-g);padding:1px 6px;border-radius:3px}
 
-    input {
-      width: 100%;
-      padding: 12px 16px;
-      border: 2px solid #e2e8f0;
-      border-radius: 8px;
-      font-size: 14px;
-      transition: all 0.3s ease;
-      background: #fff;
-      font-family: 'Courier New', monospace;
-    }
+    /* TIP */
+    .tip{position:relative;display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1px solid var(--border2);background:var(--surf2);color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;cursor:default;flex-shrink:0;vertical-align:middle}
+    .tip::after{content:attr(data-tip);position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);background:var(--surf3);border:1px solid var(--border2);border-radius:var(--rsm);padding:9px 13px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:400;color:var(--text2);white-space:pre-line;max-width:280px;min-width:160px;opacity:0;visibility:hidden;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.4);transition:opacity .15s;pointer-events:none}
+    .tip:hover::after{opacity:1;visibility:visible}
 
-    input:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
+    /* FOOTER */
+    .site-footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px}
+    .footer-left{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+    .footer-left strong{color:var(--text2);font-weight:600}
+    .footer-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .footer-link{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--rsm);font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;text-decoration:none;transition:all .18s;border:1px solid var(--border2);color:var(--text2);background:transparent}
+    .footer-link:hover{border-color:var(--accent-l);color:var(--accent-l);transform:translateY(-1px)}
+    .footer-link.status:hover{border-color:var(--green);color:var(--green)}
 
-    /* Bottone pagamento */
-    .pay-button {
-      width: 100%;
-      padding: 16px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: #fff;
-      border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-      margin-top: 10px;
-    }
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
-    .pay-button:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-    }
-    .pay-button:active:not(:disabled) { transform: translateY(0); }
-    .pay-button:disabled { opacity: 0.6; cursor: not-allowed; }
-
-    /*Radio Callback*/
-    input[type="radio"] { width: auto; padding: 0; margin-right: 6px; }
-    
-    /* Spinner */
-    .spinner {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin-right: 8px;
-      vertical-align: middle;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* Box messaggi */
-    .status-message {
-      margin-top: 20px;
-      padding: 16px;
-      border-radius: 8px;
-      font-size: 14px;
-      display: none;
-      animation: fadeIn 0.3s ease;
-    }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-    .status-message.success {
-      background: #c6f6d5;
-      color: #22543d;
-      border: 2px solid #9ae6b4;
-    }
-    .status-message.error {
-      background: #fed7d7;
-      color: #742a2a;
-      border: 2px solid #fc8181;
-    } 
-    .status-message.pending {
-      background: #fef3c7;
-      color: #78350f;
-      border: 2px solid #fbbf24;
-    }
-    .status-message.info {
-      background: #bee3f8;
-      color: #2c5282;
-      border: 2px solid #90cdf4;
-    }
-    .status-message.warning {
-      background: #fef3c7;
-      color: #78350f;
-      border: 2px solid #fbbf24;
-    }
-
-    .note {
-      background: #e0e7ff;
-      border-left: 4px solid #667eea;
-      padding: 20px;
-      margin-top: 20px;
-      border-radius: 4px;
-      font-size: 13px;
-      color: #3730a3;
-    }
-    .note strong {
-      display: block;
-      margin-bottom: 10px;
-      color: #1e1b4b;
-      font-size: 14px;
-    }
-    .note ol { margin-left: 20px; margin-top: 10px; }
-    .note li { margin-bottom: 8px; line-height: 1.6; }
-    .note code {
-      background: #c7d2fe;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-family: 'Courier New', monospace;
-      font-size: 12px;
-    }
-
-    .api-example {
-      background: #1e293b;
-      border-radius: 8px;
-      padding: 20px;
-      margin-top: 20px;
-      color: #e2e8f0;
-      font-size: 13px;
-    }
-    .api-example strong {
-      display: block;
-      margin-bottom: 12px;
-      color: #fbbf24;
-    }
-    .api-example pre { margin: 0; overflow-x: auto; }
-    .api-example code {
-      color: #a5f3fc;
-      font-family: 'Courier New', monospace;
-      font-size: 12px;
-      line-height: 1.6;
-    }
-
-    .security-badge {
-      text-align: center;
-      margin-top: 20px;
-      padding: 15px;
-      background: #f7fafc;
-      border-radius: 8px;
-      font-size: 12px;
-      color: #718096;
-    }
-    .security-badge svg {
-      width: 16px;
-      height: 16px;
-      vertical-align: middle;
-      margin-right: 5px;
-    }
+    @media(max-width:600px){.send-row{flex-wrap:wrap}}
   </style>
 </head>
-
 <body>
-  <div class="container">
-    <div class="header">
-      <div class="logo">💳</div>
-      <h1>Fabrick Payment</h1>
-      <p class="subtitle">Lightbox</p>
+<div class="wrap">
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="badge"><span class="bdot"></span>SANDBOX · Axerve Lightbox</div>
+    <h1>Axerve <em>Lightbox</em></h1>
+    <p class="hero-sub">Apri la lightbox di pagamento Fabrick/Axerve usando <code>paymentID</code> e <code>paymentToken</code> ottenuti da <code>payment/create</code>.</p>
+  </header>
+
+  <!-- SDK STATUS -->
+  <div class="sdk-banner" id="sdk-banner">
+    <div class="sdk-dot"></div>
+    <span id="sdk-status-text">Verifica SDK Axerve…</span>
+  </div>
+
+  <!-- CREDENTIALS -->
+  <div class="cred-box">
+    <div class="cred-title">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Credenziali Merchant
+      <span class="tip" data-tip="shopLogin: identificativo merchant (es. GESPAY00001).&#10;Assegnato a axerve.lightBox.shop prima dell'open().&#10;Persistito in sessionStorage durante la sessione.">i</span>
     </div>
-
-    <form id="paymentForm" novalidate>
-      <div class="form-group">
-        <label for="shopLogin">Shop Login</label>
-        <input
-          type="text"
-          id="shopLogin"
-          placeholder="GESPAY00001"
-          autocomplete="off"
-          required
-        />
-        <small class="field-hint">Codice esercente</small>
-      </div>
-
-      <div class="form-group">
-        <label for="paymentID">Payment ID</label>
-        <input
-          type="text"
-          id="paymentID"
-          placeholder="1360119538182"
-          autocomplete="off"
-          required
-        />
-        <small class="field-hint">ID transazione generato dal server</small>
-      </div>
-
-      <div class="form-group">
-        <label for="paymentToken">Payment Token</label>
-        <input
-          type="text"
-          id="paymentToken"
-          placeholder="8a901523-67a5-4aca-bbd2-c7c412934289"
-          autocomplete="off"
-          required
-        />
-        <small class="field-hint">Token generato dal server</small>
-      </div>
-
-      <div class="form-group">
-        <label>Gestione Callback</label>
-      
-        <label style="font-weight: normal;">
-          <input type="radio" name="callbackMode" value="enabled" checked />
-          Callback JS abilitata
-        </label>
-      
-        <label style="font-weight: normal; margin-top: 5px;">
-          <input type="radio" name="callbackMode" value="disabled" />
-          Callback JS disabilitata (solo redirect Axerve)
-        </label>
-      
-        <small class="field-hint">
-          Scegli se gestire l’esito via JavaScript o lasciare il redirect automatico
-        </small>
-      </div>
-
-      <button type="submit" class="pay-button" id="payButton">
-        <span id="buttonText">Apri Lightbox</span>
-      </button>
-    </form>
-
-    <div id="statusMessage" class="status-message"></div>
-
-    <div class="note">
-      <strong>📌 Istruzioni</strong>
-      <ol>
-        <li>Effettua la chiamata <code>POST /payment/create</code> dal tuo server</li>
-        <li>Ricevi <code>paymentID</code> e <code>paymentToken</code> nella risposta</li>
-        <li>Inserisci i dati nei campi sopra</li>
-        <li>Clicca su "Apri Lightbox"</li>
-      </ol>
-    </div>
-
-    <div class="api-example">
-      <strong>🔧 Esempio Request Body Server:</strong>
-      <pre><code>{
-  "shopLogin": "GESPAY00001",
-  "amount": 10.00,
-  "currency": "EUR",
-  "shopTransactionID": "FBK_OrderID_001"
-}</code></pre>
-    </div>
-
-    <div class="security-badge">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-      </svg>
-      Pagamento sicuro con 3D Secure 2.0
-       </div>
-    <div class="header">
-        <p class="subtitle">Powered by M2NDLAB</p>
+    <div class="field-grid">
+      <div class="field">
+        <label>Shop Login <span class="req">*</span></label>
+        <input id="shopLogin" type="text" placeholder="GESPAY00001" autocomplete="off" spellcheck="false"/>
+        <span class="field-hint">Codice esercente fornito da Fabrick</span>
       </div>
     </div>
- 
-  
-  <!---  
-  <script src="https://sandbox-web.axerve.com/orchestra/checkout/assets/axerve.js"></script>
-  <script src="https://ecomm.sella.it/pagam/javascript/axerve.js"></script>
-  --> 
-   
- 
-  
-  <script src="https://sandbox.gestpay.net/pagam/javascript/axerve.js"></script>
-  
-  <script>
-    // =====================================================
-    // CONFIG DEBUG
-    // =====================================================
-    const DEBUG = true;
-    const LOG_PREFIX = '[AXERVE-LB]';
+  </div>
 
-    function log(...args)   { if (DEBUG) console.log(LOG_PREFIX, ...args); }
-    function warn(...args)  { if (DEBUG) console.warn(LOG_PREFIX, ...args); }
-    function error(...args) { console.error(LOG_PREFIX, ...args); }
+  <!-- HANDSHAKE BOX -->
+  <div class="box handshake">
+    <div class="box-header">
+      <div class="box-label">
+        <span class="box-dot purple"></span>
+        Payment Handshake
+        <span class="tip" data-tip="Questi valori vengono restituiti dal tuo backend dopo la chiamata payment/create.&#10;paymentID: identificativo numerico della transazione.&#10;paymentToken: UUID v4 usato una sola volta (single-use).">i</span>
+      </div>
+      <div class="box-actions">
+        <button class="btn-ghost" style="padding:4px 11px;border-radius:4px;font-size:10px;font-family:'JetBrains Mono',monospace" onclick="doReset()">reset</button>
+      </div>
+    </div>
+    <div class="box-body">
+      <div class="field-grid">
+        <div class="field">
+          <label>Payment ID <span class="req">*</span></label>
+          <input id="paymentID" type="text" placeholder="1360119538182" autocomplete="off" spellcheck="false" inputmode="numeric"/>
+          <span class="field-hint">ID numerico della transazione</span>
+        </div>
+        <div class="field">
+          <label>Payment Token <span class="req">*</span></label>
+          <input id="paymentToken" type="text" placeholder="8a901523-67a5-4aca-bbd2-c7c412934289" autocomplete="off" spellcheck="false"/>
+          <span class="field-hint" id="token-hint">UUID v4 — valido per un singolo utilizzo</span>
+        </div>
+      </div>
+    </div>
+    <!-- Callback mode pills -->
+    <div class="cb-pills">
+      <span class="cb-label">callback mode</span>
+      <span class="cb-pill active" data-mode="enabled"  onclick="setCallbackMode(this)">
+        <span class="cb-pill-dot"></span>JS ENABLED
+      </span>
+      <span class="cb-pill" data-mode="disabled" onclick="setCallbackMode(this)">
+        <span class="cb-pill-dot"></span>REDIRECT ONLY
+      </span>
+      <span class="tip" data-tip="JS ENABLED: la SDK invoca onAxerveLightboxResult con l'esito del pagamento.&#10;REDIRECT ONLY: nessuna callback JS, si affida al redirect configurato sul backoffice Fabrick.">i</span>
+    </div>
+    <div class="validation-bar">
+      <div class="vb-icon" id="vb-icon">?</div>
+      <span id="vb-msg">Inserisci i dati restituiti da payment/create</span>
+    </div>
+  </div>
 
-    // =====================================================
-    // DOM
-    // =====================================================
-    const form = document.getElementById('paymentForm');
-    const payButton = document.getElementById('payButton');
-    const buttonText = document.getElementById('buttonText');
-    const statusMessage = document.getElementById('statusMessage');
+  <!-- SEND ROW -->
+  <div class="send-row">
+    <button class="btn btn-primary" id="payButton" onclick="doSubmit()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      <span id="buttonText">Apri Lightbox</span>
+    </button>
+    <span class="status-badge sb-idle" id="status-badge">In attesa</span>
+    <div style="flex:1"></div>
+    <button class="btn btn-ghost" id="clear-btn" onclick="doClear()" style="display:none">✕ Cancella esito</button>
+  </div>
 
-    let lightboxOpen = false;
-    let callbackTimeoutId = null;
-    const CALLBACK_TIMEOUT_MS = 60000;
-    let callbackEnabled = true;
+  <!-- RESULT BOX -->
+  <div class="result-box" id="result-box">
+    <div class="result-header">
+      <div id="result-icon"></div>
+      <div class="result-header-text">
+        <h3 id="result-title">—</h3>
+        <p  id="result-sub">—</p>
+      </div>
+    </div>
+    <div class="meta-pills" id="result-pills"></div>
+    <div class="hint-wrap" id="result-hint-wrap" style="display:none">
+      <div class="hint-title">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Cause tipiche da verificare
+      </div>
+      <ol class="hint-list" id="result-hint-list"></ol>
+    </div>
+    <div class="raw-payload" id="result-raw-wrap" style="display:none">
+      <pre id="result-raw">—</pre>
+    </div>
+  </div>
 
+  <!-- INFO NOTE -->
+  <div class="info-note">
+    <strong>📌 Flusso</strong>
+    <ol>
+      <li>Backend → <code>POST /payment/create</code> con <code>shopLogin</code>, <code>amount</code>, <code>shopTransactionID</code>.</li>
+      <li>Ricevi <code>paymentID</code> + <code>paymentToken</code>, incolla sopra.</li>
+      <li>Apri la Lightbox: l'utente completa il pagamento nel popup con 3DS 2.0.</li>
+      <li>Callback → <code>onAxerveLightboxResult(response)</code> con <code>status: OK | KO | XX</code>.</li>
+      <li><strong>Server-side</strong>: verifica sempre l'esito con <code>GET /payment/detail</code>.</li>
+    </ol>
+  </div>
 
-    // =====================================================
-    // UI helpers
-    // =====================================================
-    function showMessage(message, type) {
-      statusMessage.textContent = message;
-      statusMessage.className = `status-message ${type}`;
-      statusMessage.style.display = 'block';
+</div><!-- /wrap -->
 
-      const timeout = (type === 'error' || type === 'warning') ? 8000 : 5000;
-      setTimeout(() => { statusMessage.style.display = 'none'; }, timeout);
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-left">Processed by <strong>M2NDLAB</strong> via Fabrick &nbsp;·&nbsp; Sandbox environment</div>
+  <div class="footer-right">
+    <a href="https://github.com/M2NDLAB/axerve-lightbox-test" class="footer-link" target="_blank" rel="noopener noreferrer">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.031 1.531 1.031.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.268 2.75 1.026A9.578 9.578 0 0112 6.836a9.59 9.59 0 012.504.337c1.909-1.294 2.747-1.026 2.747-1.026.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
+      GitHub
+    </a>
+    <a href="https://status.fabrick.com/" class="footer-link status" target="_blank" rel="noopener noreferrer">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Fabrick Status
+    </a>
+    <a href="https://docs.fabrick.com/docs/paymentHubAndOrchestra/ecommerce/integrationMethods/lightbox/" class="footer-link" target="_blank" rel="noopener noreferrer">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+      Docs Lightbox ↗
+    </a>
+  </div>
+</footer>
+
+<!-- SDK Axerve (sandbox) -->
+<script src="https://sandbox.gestpay.net/pagam/javascript/axerve.js"></script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   STRUCTURED LOGGER — stesso stile Pay By Link
+═══════════════════════════════════════════════════════════════════════ */
+const LOG = {
+  _p: '[AXERVE-LB]',
+  _s: {
+    title:'color:#60A5FA;font-weight:700;font-size:12px',
+    info: 'color:#8FA3C8;font-size:11px',
+    ok:   'color:#10B981;font-weight:600',
+    warn: 'color:#F59E0B;font-weight:600',
+    err:  'color:#EF4444;font-weight:700',
+    muted:'color:#4A6080;font-size:10px',
+    key:  'color:#86EFAC;font-weight:600',
+    val:  'color:#FDE68A',
+  },
+  group(t, c='title') { console.groupCollapsed(`%c${this._p} ${t}`, this._s[c]); },
+  end()               { console.groupEnd(); },
+  kv(k, v, s='val')   { console.log(`%c  ${k}: %c${String(v)}`, this._s.key, this._s[s]||this._s.val); },
+  line(m, s='info')   { console.log(`%c  ${m}`, this._s[s]); },
+  sep()               { console.log('%c  ─────────────────────────', this._s.muted); },
+  raw(l, o)           { console.log(`%c  ${l}:`, this._s.muted, o); },
+};
+
+(function() {
+  console.log('%c╔══════════════════════════════════════════╗', 'color:#2563EB');
+  console.log('%c  Axerve Lightbox Demo — Debug Console',      'color:#60A5FA;font-weight:700;font-size:13px');
+  console.log('%c╚══════════════════════════════════════════╝', 'color:#2563EB');
+})();
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CONSTANTS & STATE
+═══════════════════════════════════════════════════════════════════════ */
+const CALLBACK_TIMEOUT_MS = 60_000;          // Soglia attesa callback Axerve (tenere coerente con 3DS)
+const UUID_REGEX   = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const SHOP_REGEX   = /^[A-Za-z0-9_-]+$/;     // shopLogin: alfanumerico + _-, no spazi
+
+/*
+  AXERVE_ERROR_HINTS — mappa degli error code della SDK Axerve Lightbox
+  con cause tipiche da presentare all'utente/dev in caso di errore.
+  La descrizione del backend è spesso generica (es. "Error Creating Iframe")
+  e non suggerisce dove guardare. Questa mappa arricchisce l'esito.
+  Espandibile: aggiungi qui nuove entry quando emergono nuovi codici.
+*/
+const AXERVE_ERROR_HINTS = {
+  '9992': {
+    title: 'Iframe non creato',
+    causes: [
+      'SDK chiamata troppo presto: axerve.js popola window.axerve ma completa il setup async qualche decina/centinaia di ms dopo. La pagina deve attendere (~300ms) prima del primo open()',
+      'paymentToken già utilizzato (i token sono single-use) oppure scaduto (~15 min dalla creazione)',
+      'Mismatch shopLogin ↔ paymentToken: il token è stato generato per un altro merchant',
+      'Ambiente misto: token sandbox usato con SDK produzione o viceversa',
+      'Dominio non autorizzato nel backoffice merchant (solo se configurazione restrittiva attiva)',
+      'CSP/frame-ancestors della pagina bloccano l\'iframe Axerve',
+    ],
+  },
+  '9999': {
+    title: 'Errore generico SDK',
+    causes: [
+      'Errore non classificato lato SDK — verificare la console per stack trace',
+      'Token/ID malformati o non validi',
+    ],
+  },
+};
+
+// Stato runtime
+let _lightboxOpen     = false;
+let _callbackTimeout  = null;
+let _callbackMode     = 'enabled';           // 'enabled' | 'disabled'
+
+const $ = id => document.getElementById(id);
+
+/* ═══════════════════════════════════════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════════════════════════════════════ */
+function getShop()  { return ($('shopLogin').value    || '').trim(); }
+function getPID()   { return ($('paymentID').value    || '').trim(); }
+function getToken() { return ($('paymentToken').value || '').trim(); }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SDK PROBE
+   Verifica che la libreria axerve.js sia caricata e funzionale.
+   Serve a dare feedback immediato all'utente se lo script è down
+   o se è stato caricato un bundle incompatibile.
+═══════════════════════════════════════════════════════════════════════ */
+function probeSdk() {
+  const banner = $('sdk-banner');
+  const txt    = $('sdk-status-text');
+  banner.style.display = 'flex';
+
+  const hasLib    = typeof axerve !== 'undefined';
+  const hasLb     = hasLib && axerve.lightBox;
+  const hasOpen   = hasLb && typeof axerve.lightBox.open === 'function';
+
+  if (hasOpen) {
+    banner.className = 'sdk-banner ok';
+    txt.innerHTML = 'SDK Axerve caricata · <code style="background:rgba(0,0,0,.2);padding:1px 5px;border-radius:3px">axerve.lightBox.open</code> disponibile';
+    LOG.group('SDK Axerve — probe OK', 'ok');
+    LOG.kv('axerve',               typeof axerve,                              'ok');
+    LOG.kv('axerve.lightBox',      typeof axerve.lightBox,                     'ok');
+    LOG.kv('axerve.lightBox.open', typeof axerve.lightBox.open,                'ok');
+    LOG.end();
+    return true;
+  }
+
+  banner.className = 'sdk-banner ko';
+  const issue = !hasLib ? 'global axerve non definito'
+              : !hasLb  ? 'axerve.lightBox assente'
+              :           'axerve.lightBox.open non è funzione';
+  txt.textContent = `SDK non disponibile — ${issue}. Controlla lo script axerve.js`;
+  LOG.group('SDK Axerve — probe FAIL', 'err');
+  LOG.kv('issue', issue, 'err');
+  LOG.line('→ Possibile script blocker, URL errato o network fail.', 'warn');
+  LOG.end();
+  return false;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   INIT — autofill da query string + sessionStorage + SDK probe
+═══════════════════════════════════════════════════════════════════════ */
+function init() {
+  // 1. sessionStorage restore (priorità bassa)
+  const keys = ['shopLogin','paymentID','paymentToken'];
+  keys.forEach(k => {
+    const v = sessionStorage.getItem('lb_' + k);
+    if (v) $(k).value = v;
+  });
+
+  // 2. Query string override (priorità alta — deep link dal flusso PBL)
+  //    Supporta anche il formato case-insensitive dei param (paymentId / paymentID)
+  const qs = new URLSearchParams(window.location.search);
+  const qsMap = { shopLogin: ['shopLogin','shoplogin','a'],
+                  paymentID: ['paymentID','paymentId','paymentid'],
+                  paymentToken: ['paymentToken','paymenttoken','token'] };
+  let autofilled = 0;
+  Object.keys(qsMap).forEach(field => {
+    for (const alias of qsMap[field]) {
+      const v = qs.get(alias);
+      if (v) { $(field).value = v; autofilled++; break; }
     }
+  });
+  if (autofilled > 0) {
+    LOG.group(`Autofill da query string — ${autofilled} campo/i`, 'info');
+    keys.forEach(k => { if ($(k).value) LOG.kv(k, $(k).value); });
+    LOG.line('Query string pulita dalla URL per evitare leak nei log proxy.', 'muted');
+    LOG.end();
+    // Clean URL per evitare che paymentToken resti in history/logs proxy
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
 
-    function setLoading(isLoading) {
-      if (isLoading) {
-        payButton.disabled = true;
-        buttonText.innerHTML = '<span class="spinner"></span>Apertura in corso...';
-      } else {
-        payButton.disabled = false;
-        buttonText.textContent = 'Apri Lightbox';
-      }
-    }
+  // 3. Persistenza su blur (non keystroke → meno noise)
+  keys.forEach(k => {
+    $(k).addEventListener('blur',  () => sessionStorage.setItem('lb_' + k, $(k).value));
+    $(k).addEventListener('input', validate);
+  });
 
-    // =====================================================
-    // Validation
-    // =====================================================
-    function validateInputs(shopLogin, paymentID, paymentToken) {
-      const errors = [];
+  // 4. SDK probe (dopo che axerve.js è stato caricato dal <script> precedente)
+  //    Uso un micro-delay per gestire eventuali inizializzazioni asincrone della lib.
+  setTimeout(probeSdk, 50);
 
-      if (!shopLogin || shopLogin.trim().length === 0) errors.push('Shop Login è obbligatorio');
-      if (!paymentID || paymentID.trim().length === 0) errors.push('Payment ID è obbligatorio');
-      if (!paymentToken || paymentToken.trim().length === 0) errors.push('Payment Token è obbligatorio');
+  validate();
 
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (paymentToken && !uuidRegex.test(paymentToken)) {
-        errors.push('Payment Token non sembra un UUID valido');
-      }
+  LOG.line('Origin pagina: ' + window.location.origin, 'muted');
+}
 
-      return errors;
-    }
+/* ═══════════════════════════════════════════════════════════════════════
+   CALLBACK MODE (pill)
+═══════════════════════════════════════════════════════════════════════ */
+function setCallbackMode(el) {
+  _callbackMode = el.dataset.mode;
+  document.querySelectorAll('.cb-pill').forEach(p => p.classList.toggle('active', p === el));
+  LOG.group(`Callback mode → ${_callbackMode.toUpperCase()}`, 'info');
+  LOG.line(_callbackMode === 'enabled'
+    ? 'La SDK invocherà onAxerveLightboxResult alla chiusura della lightbox.'
+    : 'Nessuna callback JS. Affidamento al redirect configurato sul backoffice Fabrick.',
+    'info');
+  LOG.end();
+}
 
-    // =====================================================
-    // CALLBACK - La Lightbox chiude automaticamente
-    // =====================================================
-    document.querySelectorAll('input[name="callbackMode"]').forEach(radio => {
-      radio.addEventListener('change', (e) => {
-        callbackEnabled = e.target.value === 'enabled';
-        log('🔁 Callback mode:', callbackEnabled ? 'ENABLED' : 'DISABLED');
-      });
-    });
-    
-    function onAxerveLightboxResult(response) {
-      if (callbackTimeoutId) {
-        clearTimeout(callbackTimeoutId);
-        callbackTimeoutId = null;
-      }
+/* ═══════════════════════════════════════════════════════════════════════
+   VALIDATION
+═══════════════════════════════════════════════════════════════════════ */
+function validate() {
+  const shop  = getShop(), pid = getPID(), tok = getToken();
+  const icon  = $('vb-icon'), msg = $('vb-msg');
+  const errs  = [];
 
-      lightboxOpen = false;
+  // Reset visual invalid state
+  ['shopLogin','paymentID','paymentToken'].forEach(k => $(k).classList.remove('invalid'));
 
-      log('✅ Callback ricevuta:', response);
-      log('📦 Response completo:', JSON.stringify(response, null, 2));
-      log('🔍 response.responseURL:', response.responseURL);
-      log('🔍 response.status:', response.status);
-      log('🔍 response.paymentId:', response.paymentId);
-      log('🔍 response.error:', response.error);
-      log('ℹ️ La Lightbox si chiude automaticamente');
+  if (!shop) errs.push('shopLogin obbligatorio');
+  else if (!SHOP_REGEX.test(shop)) { errs.push('shopLogin: solo A-Z, 0-9, _ -'); $('shopLogin').classList.add('invalid'); }
 
-      handleLightboxCallback(response);
+  if (!pid) errs.push('paymentID obbligatorio');
 
-      return false;
-    }
+  if (!tok) errs.push('paymentToken obbligatorio');
+  else if (!UUID_REGEX.test(tok)) { errs.push('paymentToken non è un UUID valido'); $('paymentToken').classList.add('invalid'); }
 
-    // =====================================================
-    // PARSER + UI
-    // =====================================================
-    function handleLightboxCallback(responseOrEvent) {
-      const isMessageEvent =
-        responseOrEvent &&
-        typeof responseOrEvent === 'object' &&
-        'data' in responseOrEvent &&
-        'origin' in responseOrEvent;
+  if (errs.length) {
+    setVb(icon, msg, 'err', '✗', '✗ ' + errs.join(' · '));
+    return false;
+  }
+  setVb(icon, msg, 'ok', '✓', `✓ Campi validi · callback: ${_callbackMode.toUpperCase()}`);
+  return true;
+}
 
-      const response = isMessageEvent ? responseOrEvent.data : responseOrEvent;
+function setVb(icon, msg, cls, ic, txt) {
+  icon.className   = `vb-icon vb-${cls}`;
+  icon.textContent = ic;
+  msg.className    = cls;
+  msg.textContent  = txt;
+}
 
-      log('📩 handleLightboxCallback() called', { isMessageEvent });
-      if (isMessageEvent) log('   origin:', responseOrEvent.origin);
-      log('   payload:', response);
+/* ═══════════════════════════════════════════════════════════════════════
+   CALLBACK GLOBALE — invocata dalla SDK Axerve
+   Manteniamo il nome onAxerveLightboxResult perché è il nome che
+   passiamo per reference a axerve.lightBox.open(). La SDK la usa
+   direttamente senza dipendere dallo scope globale.
+═══════════════════════════════════════════════════════════════════════ */
+function onAxerveLightboxResult(response) {
+  if (_callbackTimeout) { clearTimeout(_callbackTimeout); _callbackTimeout = null; }
+  _lightboxOpen = false;
 
-      if (!response) {
-        warn('⚠ Callback senza payload (response nullo/undefined)');
-        showMessage('⚠ Callback ricevuta ma payload vuoto', 'warning');
-        return;
-      }
+  LOG.group('Callback SDK ricevuta', 'ok');
+  LOG.raw('response', response);
+  if (response) {
+    LOG.kv('status',       response.status      || '—');
+    LOG.kv('paymentId',    response.paymentId || response.paymentID || '—');
+    LOG.kv('responseURL',  response.responseURL || '—');
+    if (response.error) LOG.kv('error.description', response.error.description || '—', 'err');
+  }
+  LOG.end();
 
-      const status = response.status;
-      const paymentId = response.paymentId || response.paymentID;
-      const responseURL = response.responseURL;
-      const err = response.error;
+  handleLightboxCallback(response);
+  return false;  // segnale alla SDK per continuare il flusso standard
+}
 
-      log('   parsed:', { status, paymentId, responseURL, error: err });
+/* ═══════════════════════════════════════════════════════════════════════
+   HANDLER PARSE + UI
+   Gestisce sia payload nativi della SDK sia eventi postMessage
+   (alcune integrazioni legacy inviano l'esito via window.postMessage).
+═══════════════════════════════════════════════════════════════════════ */
+function handleLightboxCallback(responseOrEvent) {
+  const isMessageEvent =
+    responseOrEvent && typeof responseOrEvent === 'object' &&
+    'data' in responseOrEvent && 'origin' in responseOrEvent;
 
-      if (status === 'OK') {
-        showMessage('✓ Pagamento completato con successo! (OK)', 'success');
-        log('✓ Pagamento completato con successo! (OK)', 'success');
-      } else if (status === 'KO') {
-        const errMsg = (err && err.description) ? err.description : 'Pagamento rifiutato (KO)';
-        showMessage('✗ Pagamento fallito: ' + errMsg, 'error');
-        log('✗ Pagamento fallito: ' + errMsg, 'error');
-      } else if (status === 'XX') {
-        showMessage('⏳ Pagamento in attesa di conferma! (XX)', 'pending');
-        log('⏳ Pagamento in attesa di conferma! (XX)', 'pending');
-      } else {
-        showMessage('⚠ Status inatteso: ' + String(status), 'warning');
-        log('⚠ Status inatteso: ' + String(status), 'warning');
-      }
+  const response = isMessageEvent ? responseOrEvent.data : responseOrEvent;
 
-      if (paymentId) {
-        log('Payment ID:', paymentId);
-        log('💡 Verifica server-side consigliata con GET /payment/detail');
-        // In produzione: verifyPaymentOnServer(paymentId);
-      }
-    }
+  if (isMessageEvent) LOG.kv('message origin', responseOrEvent.origin);
 
-    // =====================================================
-    // OPEN LIGHTBOX
-    // =====================================================
-    function openLightbox(shopLogin, paymentID, paymentToken) {
-      if (typeof axerve === 'undefined' || !axerve.lightBox || typeof axerve.lightBox.open !== 'function') {
-        throw new Error('Libreria Axerve non caricata o incompleta. Controlla lo script axerve.js.');
-      }
+  if (!response) {
+    showResult('warn', 'Payload vuoto', 'Callback ricevuta ma senza dati', null);
+    setBadge('err', '✗ Payload vuoto');
+    return;
+  }
 
-      log('Apertura Lightbox con:', {
-        shopLogin,
-        paymentID,
-        paymentToken: paymentToken.substring(0, 8) + '...'
-      });
+  const status      = response.status;
+  const paymentId   = response.paymentId || response.paymentID;
+  const responseURL = response.responseURL;
+  const err         = response.error;
 
-      axerve.lightBox.shop = shopLogin;
-      lightboxOpen = true;
-
-      if (callbackTimeoutId) clearTimeout(callbackTimeoutId);
-      callbackTimeoutId = setTimeout(() => {
-        warn(`⏰ Nessuna callback entro ${CALLBACK_TIMEOUT_MS/1000}s. Possibile redirect/config backoffice.`);
-        showMessage(`⚠ Nessuna callback entro ${CALLBACK_TIMEOUT_MS/1000}s. Controlla configurazione.`, 'warning');
-      }, CALLBACK_TIMEOUT_MS);
-
-      axerve.lightBox.open(paymentID, paymentToken, callbackEnabled ? onAxerveLightboxResult : null);
-
-      showMessage('✓ Lightbox aperto! Completa il pagamento nel popup.', 'success');
-    }
-
-    // =====================================================
-    // SUBMIT FORM
-    // =====================================================
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const shopLogin = document.getElementById('shopLogin').value.trim();
-      const paymentID = document.getElementById('paymentID').value.trim();
-      const paymentToken = document.getElementById('paymentToken').value.trim();
-
-      const validationErrors = validateInputs(shopLogin, paymentID, paymentToken);
-      if (validationErrors.length > 0) {
-        showMessage('Errori di validazione: ' + validationErrors.join(', '), 'error');
-        warn('Validation errors:', validationErrors);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        showMessage('Configurazione Lightbox in corso...', 'info');
-
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        openLightbox(shopLogin, paymentID, paymentToken);
-      } catch (err) {
-        error('Errore:', err);
-        showMessage('Errore: ' + (err && err.message ? err.message : String(err)), 'error');
-
-        lightboxOpen = false;
-
-        if (callbackTimeoutId) {
-          clearTimeout(callbackTimeoutId);
-          callbackTimeoutId = null;
-        }
-      } finally {
-        setLoading(false);
-      }
-    });
-
-    // =====================================================
-    // BEFOREUNLOAD
-    // =====================================================
-   /*
-    window.addEventListener('beforeunload', (e) => {
-      if (lightboxOpen) {
-        e.preventDefault();
-        e.returnValue = 'Il pagamento è in corso. Sei sicuro di voler uscire?';
-      }
-    });
+  /*
+    Se arriva un error code *senza* status (caso 9992 e simili) la SDK
+    ha fallito prima ancora di aprire il checkout. Diamo priorità a questo
+    ramo perché gli hint diagnostici sono più utili del generico "status: —".
   */
-    // =====================================================
-    // LOG INIZIALE
-    // =====================================================
-    log('===================================');
-    log('Fabrick Lightbox - Ready');
-    log('Origin pagina:', window.location.origin);
-    log('Istruzioni:');
-    log('1) Chiama POST /payment/create dal server');
-    log('2) Incolla shopLogin, paymentID, paymentToken');
-    log('3) Clicca "Apri Lightbox Pagamento"');
-    log('===================================');
-  </script>
+  if (err && err.code && err.code !== '0' && !status) {
+    const hint = AXERVE_ERROR_HINTS[String(err.code)];
+    const title = hint ? `SDK Error ${err.code} — ${hint.title}` : `SDK Error ${err.code}`;
+    const sub   = err.description || 'Errore SDK senza descrizione';
+    showResult('err', title, sub, response, hint);
+    setBadge('err', `✗ SDK ${err.code}`);
+    LOG.group(`SDK Error ${err.code} — diagnostica`, 'err');
+    LOG.kv('error.code',        err.code, 'err');
+    LOG.kv('error.description', err.description || '—');
+    if (hint) {
+      LOG.sep();
+      LOG.line('Cause tipiche da verificare:', 'warn');
+      hint.causes.forEach((c, i) => LOG.line(`  ${i+1}. ${c}`, 'warn'));
+    }
+    LOG.end();
+    return;
+  }
+
+  if (status === 'OK') {
+    showResult('ok',   'Pagamento completato', `status: OK · paymentId: ${paymentId || '—'}`, response);
+    setBadge('ok', '✓ OK');
+  } else if (status === 'KO') {
+    const errMsg = (err && err.description) ? err.description : 'Pagamento rifiutato';
+    showResult('err',  'Pagamento fallito', `status: KO · ${errMsg}`, response);
+    setBadge('err', '✗ KO');
+  } else if (status === 'XX') {
+    showResult('pend', 'Pagamento in attesa', 'status: XX · conferma server-side via payment/detail', response);
+    setBadge('pending', '⏳ XX');
+  } else {
+    showResult('warn', 'Status inatteso', `Ricevuto: ${String(status)}`, response);
+    setBadge('err', '⚠ Unknown');
+  }
+
+  if (paymentId) {
+    LOG.group('Follow-up server-side richiesto', 'warn');
+    LOG.kv('paymentID', paymentId, 'ok');
+    LOG.line('→ GET /payment/detail per conferma definitiva (non affidarti solo al callback JS).', 'warn');
+    LOG.end();
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SUBMIT — apre la Lightbox
+═══════════════════════════════════════════════════════════════════════ */
+async function doSubmit() {
+  if (_lightboxOpen) {
+    LOG.group('Apertura bloccata — lightbox già attiva', 'warn');
+    LOG.line('Aspetta la chiusura o la callback della lightbox corrente.', 'warn');
+    LOG.end();
+    setBadge('err', '⚠ Già aperta');
+    return;
+  }
+  if (!validate()) {
+    LOG.group('Submit bloccato — validation fallita', 'warn');
+    LOG.end();
+    return;
+  }
+  if (!probeSdk()) {
+    setBadge('err', '✗ SDK non pronta');
+    return;
+  }
+
+  const shop = getShop(), pid = getPID(), tok = getToken();
+
+  // UI loading
+  const btn = $('payButton'), btnTxt = $('buttonText');
+  btn.disabled     = true;
+  btnTxt.innerHTML = '<span class="spin-ico"></span>Apertura…';
+  setBadge('loading', 'Apertura…');
+  $('result-box').classList.remove('visible');
+
+  LOG.group(`lightBox.open → pid: ${pid}`, 'title');
+  LOG.kv('shopLogin',     shop);
+  LOG.kv('paymentID',     pid);
+  LOG.kv('paymentToken',  tok.slice(0,8) + '…' + tok.slice(-4));
+  LOG.kv('callback mode', _callbackMode, 'ok');
+  LOG.sep();
+
+  try {
+    /*
+      DELAY EMPIRICO — NON RIMUOVERE.
+      La SDK axerve.js completa un setup interno asincrono dopo il load
+      dello script (handshake config merchant / preload iframe assets).
+      `typeof axerve.lightBox.open === 'function'` ritorna true prima che
+      questo setup sia completo: chiamare open() troppo presto produce
+      error.code 9992 "Error Creating Iframe".
+      300ms è il valore trovato empiricamente nel codice originale
+      di questa pagina ed è sufficiente a evitare il race.
+    */
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    // Assegnazione richiesta dalla SDK prima dell'open()
+    axerve.lightBox.shop = shop;
+    _lightboxOpen = true;
+
+    // Timeout di safety: se la SDK non notifica nulla entro CALLBACK_TIMEOUT_MS
+    // avvisa l'utente (3DS impiega tipicamente 30-90s).
+    _callbackTimeout = setTimeout(() => {
+      _lightboxOpen = false;
+      _callbackTimeout = null;
+      LOG.group(`Timeout ${CALLBACK_TIMEOUT_MS/1000}s — nessuna callback`, 'warn');
+      LOG.line('Possibili cause: utente non ha concluso, redirect invece di callback,', 'warn');
+      LOG.line('misconfig sul backoffice Fabrick (callback URL errato).', 'warn');
+      LOG.end();
+      setBadge('err', '⏰ Timeout');
+      showResult('warn', 'Nessuna callback', `Timeout dopo ${CALLBACK_TIMEOUT_MS/1000}s`, null);
+    }, CALLBACK_TIMEOUT_MS);
+
+    // Core SDK call
+    const cb = _callbackMode === 'enabled' ? onAxerveLightboxResult : null;
+    axerve.lightBox.open(pid, tok, cb);
+
+    LOG.line('Lightbox aperta — in attesa callback / redirect.', 'ok');
+    LOG.end();
+    setBadge('open', 'Lightbox aperta');
+  } catch (e) {
+    _lightboxOpen = false;
+    if (_callbackTimeout) { clearTimeout(_callbackTimeout); _callbackTimeout = null; }
+    LOG.kv('Eccezione', e.message, 'err');
+    LOG.end();
+    setBadge('err', '✗ Errore');
+    showResult('err', 'Errore apertura', e.message || String(e), null);
+  } finally {
+    // Riabilitiamo subito il bottone: la lightbox è un overlay sopra la pagina,
+    // il focus/IO passa lì. Se l'utente chiude e vuole riprovare con un token
+    // diverso deve poterlo fare immediatamente.
+    btn.disabled       = false;
+    btnTxt.textContent = 'Apri Lightbox';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RESULT UI
+═══════════════════════════════════════════════════════════════════════ */
+function setBadge(kind, text) {
+  const b = $('status-badge');
+  b.className   = 'status-badge sb-' + kind;
+  b.textContent = text;
+}
+
+function showResult(kind, title, sub, rawPayload, hint) {
+  const box = $('result-box');
+  box.className = 'result-box visible ' + kind;
+  $('result-title').textContent = title;
+  $('result-sub').textContent   = sub;
+
+  // Icona dinamica in base al kind
+  const icons = {
+    ok:   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--green)"  stroke-width="2.3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>',
+    err:  '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--red)"    stroke-width="2.3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+    warn: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2.3" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9"  x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+    pend: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2.3" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  };
+  $('result-icon').innerHTML = icons[kind] || icons.warn;
+
+  // Meta pills
+  const pills = [];
+  if (rawPayload) {
+    const pid = rawPayload.paymentId || rawPayload.paymentID;
+    if (pid) pills.push(`<div class="meta-pill">paymentId <span>${pid}</span></div>`);
+    if (rawPayload.status) pills.push(`<div class="meta-pill">status <span>${rawPayload.status}</span></div>`);
+    if (rawPayload.responseURL) pills.push(`<div class="meta-pill">responseURL <span>present</span></div>`);
+    if (rawPayload.error && rawPayload.error.code) pills.push(`<div class="meta-pill">error.code <span>${rawPayload.error.code}</span></div>`);
+  }
+  $('result-pills').innerHTML = pills.join('');
+
+  // Hint diagnostici (se presenti) — lista delle cause tipiche per l'error code
+  const hintWrap = $('result-hint-wrap');
+  if (hint && Array.isArray(hint.causes) && hint.causes.length) {
+    $('result-hint-list').innerHTML = hint.causes.map(c => `<li>${c}</li>`).join('');
+    hintWrap.style.display = '';
+  } else {
+    hintWrap.style.display = 'none';
+  }
+
+  // Raw payload (se presente)
+  if (rawPayload) {
+    $('result-raw').textContent = JSON.stringify(rawPayload, null, 2);
+    $('result-raw-wrap').style.display = '';
+  } else {
+    $('result-raw-wrap').style.display = 'none';
+  }
+
+  $('clear-btn').style.display = '';
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MISC
+═══════════════════════════════════════════════════════════════════════ */
+function doClear() {
+  $('result-box').classList.remove('visible');
+  $('clear-btn').style.display = 'none';
+  setBadge('idle', 'In attesa');
+}
+
+function doReset() {
+  ['shopLogin','paymentID','paymentToken'].forEach(k => {
+    $(k).value = '';
+    sessionStorage.removeItem('lb_' + k);
+  });
+  doClear();
+  validate();
+  LOG.group('Form reset', 'info');
+  LOG.line('Campi svuotati e sessionStorage pulito.', 'info');
+  LOG.end();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════════════════════════════════ */
+// init() viene chiamato dopo il caricamento completo del DOM e dello script
+// axerve.js (che è <script> sincrono sopra questo blocco).
+init();
+</script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
