@@ -311,6 +311,69 @@
     .footer-link svg { width: 16px; height: 16px; flex-shrink: 0; }
     .credits { margin-top: 14px; font-size: 12px; color: var(--muted); }
 
+    /* ===== Modale Custom JS ===== */
+    .sdk-btn.accent { border-color: var(--accent); color: var(--ok-fg); }
+    .sdk-btn.accent:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    dialog.js-dialog {
+      width: min(920px, calc(100vw - 32px));
+      max-height: calc(100vh - 48px);
+      margin: auto;
+      border: 1px solid var(--border-soft);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 12px 40px rgba(0, 32, 51, 0.25);
+      padding: 0;
+    }
+    dialog.js-dialog::backdrop { background: rgba(0, 32, 51, 0.45); }
+    .js-dialog-inner { display: flex; flex-direction: column; max-height: calc(100vh - 50px); }
+    .js-dialog-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 16px 20px; border-bottom: 1px solid var(--border-soft);
+    }
+    .js-dialog-head h2 { color: var(--ink); font-size: 16px; font-weight: 700; }
+    .js-dialog-body { padding: 16px 20px; overflow: auto; }
+    .js-toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+    .js-toolbar .sdk-btn { padding: 6px 12px; }
+    #customJsCode {
+      width: 100%; min-height: 380px; resize: vertical;
+      padding: 12px;
+      border: 1px solid var(--border); border-radius: 4px;
+      background: var(--surface-2); color: var(--ink);
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+      font-size: 12px; line-height: 1.5;
+      white-space: pre; tab-size: 2;
+    }
+    #customJsCode:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+    .js-meta { margin-top: 8px; font-size: 12px; color: var(--muted); }
+    .js-checks { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+    .js-check { font-size: 12px; padding: 6px 10px; border-radius: 4px; border: 1px solid; }
+    .js-check.ok   { background: var(--ok-bg);   color: var(--ok-fg);   border-color: var(--ok-bd); }
+    .js-check.warn { background: var(--warn-bg); color: var(--warn-fg); border-color: var(--warn-bd); }
+    .js-check.err  { background: var(--err-bg);  color: var(--err-fg);  border-color: var(--err-bd); }
+    .js-check.info { background: var(--info-bg); color: var(--info-fg); border-color: var(--info-bd); }
+    .js-dialog-foot {
+      display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px;
+      padding: 14px 20px; border-top: 1px solid var(--border-soft);
+    }
+    .js-dialog-foot .right { display: flex; gap: 8px; margin-left: auto; }
+    .btn-primary {
+      padding: 8px 18px; border: none; border-radius: 4px;
+      background: var(--btn); color: #fff;
+      font: inherit; font-weight: 600; font-size: 13px; cursor: pointer;
+    }
+    .btn-primary:hover { background: var(--btn-hover); }
+    .sdk-btn.danger { border-color: var(--err-bd); color: var(--err-fg); }
+    .sdk-btn.danger:hover { background: var(--err-fg); border-color: var(--err-fg); color: #fff; }
+    .icon-btn {
+      border: none; background: none; color: var(--muted); cursor: pointer;
+      font-size: 22px; line-height: 1; padding: 2px 6px; border-radius: 4px;
+    }
+    .icon-btn:hover { color: var(--ink); background: var(--surface-2); }
+
+    .visually-hidden { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+
     @media (max-width: 560px) {
       .card { padding: 20px; }
       .sdk-row { flex-wrap: wrap; }
@@ -357,9 +420,10 @@
         <div class="sdk-row">
           <input type="text" id="sdkUrl" autocomplete="off" spellcheck="false" />
           <button type="button" class="sdk-btn" id="sdkApply">Applica</button>
+          <button type="button" class="sdk-btn accent" id="customJsOpen">Custom JS</button>
           <button type="button" class="sdk-btn secondary" id="sdkReset">Default</button>
         </div>
-        <small class="field-hint">Lascia vuoto per usare lo script di default. Solo URL https.</small>
+        <small class="field-hint">Lascia vuoto per usare lo script di default. Solo URL https. Con "Custom JS" incolli o carichi direttamente il codice: ha priorità sull’URL.</small>
         <div class="sdk-current" id="sdkCurrent"></div>
       </div>
     </section>
@@ -456,6 +520,41 @@
       <p class="credits">Progettato da M2NDLAB, scritto da Claude</p>
     </footer>
   </main>
+
+
+  <!-- ===== Modale Custom JS =====
+       Il codice viene salvato nel localStorage di questo browser ed eseguito al caricamento
+       al posto dello script SDK. Non viene mai letto da URL o query string. -->
+  <dialog class="js-dialog" id="customJsDialog" aria-labelledby="customJsTitle">
+    <div class="js-dialog-inner">
+      <div class="js-dialog-head">
+        <h2 id="customJsTitle">Custom JS</h2>
+        <button type="button" class="icon-btn" id="customJsClose" aria-label="Chiudi">&times;</button>
+      </div>
+
+      <div class="js-dialog-body">
+        <div class="js-toolbar">
+          <button type="button" class="sdk-btn" id="customJsFileBtn">Carica file .js</button>
+          <input type="file" id="customJsFile" accept=".js,.mjs,.txt,text/javascript,application/javascript" hidden />
+          <button type="button" class="sdk-btn" id="customJsCopy">Copia</button>
+        </div>
+
+        <label for="customJsCode" class="visually-hidden">Codice JavaScript</label>
+        <textarea id="customJsCode" spellcheck="false" autocomplete="off" autocapitalize="off"
+                  placeholder="Incolla qui il codice dello script SDK, oppure carica un file .js"></textarea>
+        <div class="js-meta" id="customJsMeta"></div>
+        <div class="js-checks" id="customJsChecks" aria-live="polite"></div>
+      </div>
+
+      <div class="js-dialog-foot">
+        <button type="button" class="sdk-btn danger" id="customJsRemove">Rimuovi custom JS</button>
+        <div class="right">
+          <button type="button" class="sdk-btn secondary" id="customJsCancel">Annulla</button>
+          <button type="button" class="btn-primary" id="customJsSave">Salva e carica</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
 
   <!-- Lo script SDK non è incluso staticamente: viene caricato dinamicamente dal blocco "SDK LOADER". -->
 
@@ -573,53 +672,72 @@
 
     // =====================================================
     // SDK LOADER
-    // - Default: script Orchestra sandbox.
-    // - Override: URL salvato in localStorage dal campo "Script SDK".
-    //   Si usa localStorage e NON un parametro in query string: così un link
-    //   costruito da terzi (es. ?sdk=https://evil/x.js) non può far eseguire
-    //   uno script arbitrario sull'origin di questa pagina.
+    // Tre modalità, in ordine di priorità:
+    //   1. Custom JS  → codice incollato/caricato dalla modale, eseguito inline
+    //   2. Custom URL → URL https inserito nel campo "Script SDK"
+    //   3. Default    → script Orchestra sandbox
+    //
+    // Tutto è salvato in localStorage e MAI letto da query string:
+    // un link costruito da terzi (es. ?sdk=https://evil/x.js) non può far eseguire
+    // codice arbitrario sull'origin di questa pagina.
     // =====================================================
     const DEFAULT_SDK_URL = 'https://sandbox-web.axerve.com/orchestra/checkout/assets/axerve.js';
     const SDK_STORAGE_KEY = 'axerve-lb-test:sdkUrl';
+    const CUSTOM_JS_STORAGE_KEY = 'fabrick-lb-test:customJs';
+    const CUSTOM_JS_SOURCE_URL = 'fabrick-lb-custom-sdk.js';   // nome con cui il codice compare in DevTools → Sources
 
-    // Lettura/scrittura protette: in navigazione privata o con storage disabilitato localStorage può lanciare eccezioni.
-    function readCustomSdkUrl() {
-      try { return localStorage.getItem(SDK_STORAGE_KEY) || ''; } catch { return ''; }
+    // Accesso protetto: in navigazione privata o con storage disabilitato localStorage può lanciare eccezioni.
+    function storageGet(key) {
+      try { return localStorage.getItem(key) || ''; } catch { return ''; }
     }
-    function writeCustomSdkUrl(value) {
+    function storageSet(key, value) {
       try {
-        if (value) localStorage.setItem(SDK_STORAGE_KEY, value);
-        else localStorage.removeItem(SDK_STORAGE_KEY);
+        if (value) localStorage.setItem(key, value);
+        else localStorage.removeItem(key);
         return true;
-      } catch { return false; }
+      } catch { return false; }   // include QuotaExceededError per file molto grandi
     }
+    const readCustomSdkUrl = () => storageGet(SDK_STORAGE_KEY);
+    const writeCustomSdkUrl = (v) => storageSet(SDK_STORAGE_KEY, v);
+    const readCustomJs = () => storageGet(CUSTOM_JS_STORAGE_KEY);
+    const writeCustomJs = (v) => storageSet(CUSTOM_JS_STORAGE_KEY, v);
 
     // Accetta solo URL assoluti https: esclude http (mixed content), javascript:, data: e percorsi relativi.
     function isValidSdkUrl(value) {
       try { return new URL(value).protocol === 'https:'; } catch { return false; }
     }
 
+    const customJs = readCustomJs();
     const customSdkUrl = readCustomSdkUrl();
-    const ACTIVE_SDK_URL = (customSdkUrl && isValidSdkUrl(customSdkUrl)) ? customSdkUrl : DEFAULT_SDK_URL;
-    const IS_CUSTOM_SDK = ACTIVE_SDK_URL !== DEFAULT_SDK_URL;
+    const SDK_MODE = customJs ? 'customJs' : (customSdkUrl && isValidSdkUrl(customSdkUrl)) ? 'customUrl' : 'default';
+    const ACTIVE_SDK_URL = SDK_MODE === 'customUrl' ? customSdkUrl : SDK_MODE === 'default' ? DEFAULT_SDK_URL : null;
+    const IS_CUSTOM_SDK = SDK_MODE !== 'default';
+    // Descrizione unica della sorgente, usata in UI e nei log
+    const SDK_SOURCE_LABEL = SDK_MODE === 'customJs'
+      ? `Custom JS inline (${(customJs.length / 1024).toFixed(1)} KB)`
+      : ACTIVE_SDK_URL;
 
     const sdkUrlInput = document.getElementById('sdkUrl');
     const sdkCurrent = document.getElementById('sdkCurrent');
     sdkUrlInput.placeholder = DEFAULT_SDK_URL;
-    sdkUrlInput.value = IS_CUSTOM_SDK ? ACTIVE_SDK_URL : '';
+    sdkUrlInput.value = SDK_MODE === 'customUrl' ? ACTIVE_SDK_URL : '';
 
     // Rende sempre visibile quale script è in uso: è il dato che serve in ogni screenshot di test.
     function renderSdkStatus(state) {
       const badge = state === 'error'
         ? '<span class="sdk-badge error">ERRORE</span>'
-        : IS_CUSTOM_SDK
-          ? '<span class="sdk-badge custom">CUSTOM</span>'
-          : '<span class="sdk-badge">DEFAULT</span>';
+        : SDK_MODE === 'customJs'
+          ? '<span class="sdk-badge custom">CUSTOM JS</span>'
+          : SDK_MODE === 'customUrl'
+            ? '<span class="sdk-badge custom">CUSTOM URL</span>'
+            : '<span class="sdk-badge">DEFAULT</span>';
       const suffix = state === 'loading' ? ' (caricamento…)' : state === 'error' ? ' (non caricato)' : '';
       sdkCurrent.innerHTML = badge + 'In uso: <code></code>' + suffix;
-      sdkCurrent.querySelector('code').textContent = ACTIVE_SDK_URL;   // textContent: nessuna iniezione HTML dall'URL
+      sdkCurrent.querySelector('code').textContent = SDK_SOURCE_LABEL;   // textContent: nessuna iniezione HTML
     }
 
+    // "Applica" su un URL rende l'URL la scelta attiva: il custom JS viene rimosso,
+    // altrimenti avendo priorità continuerebbe a vincere senza che l'utente se ne accorga.
     document.getElementById('sdkApply').addEventListener('click', () => {
       const value = sdkUrlInput.value.trim();
       if (value && !isValidSdkUrl(value)) {
@@ -627,29 +745,171 @@
         showMessage('URL SDK non valido: deve essere un URL assoluto https', 'error');
         return;
       }
-      if (!writeCustomSdkUrl(value)) {
-        Logger.error('localStorage non disponibile: impossibile salvare l’URL SDK');
-        showMessage('Impossibile salvare l’URL: localStorage non disponibile', 'error');
+      if (!writeCustomSdkUrl(value) || !writeCustomJs('')) {
+        Logger.error('localStorage non disponibile: impossibile salvare la configurazione SDK');
+        showMessage('Impossibile salvare: localStorage non disponibile', 'error');
         return;
       }
       window.location.reload();   // reload obbligatorio: window.axerve non è sostituibile a runtime
     });
 
+    // "Default" azzera tutto: URL custom e custom JS
     document.getElementById('sdkReset').addEventListener('click', () => {
       writeCustomSdkUrl('');
+      writeCustomJs('');
       window.location.reload();
     });
 
-    // Caricamento dinamico con misura del tempo. Se fallisce, il bottone resta disabilitato.
+    // ---------- Esecuzione ----------
+    // URL esterno: onload/onerror del tag <script>.
+    function loadSdkFromUrl(url) {
+      return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = url;
+        s.async = false;
+        s.onload = resolve;
+        s.onerror = () => reject(new Error('Impossibile caricare lo script SDK: ' + url));
+        document.head.appendChild(s);
+      });
+    }
+
+    // Codice inline: uno <script> inline viene eseguito in modo SINCRONO all'inserimento nel DOM
+    // e non emette onload/onerror. Gli errori (sintassi o runtime al primo avvio) arrivano invece
+    // come evento "error" su window: lo ascoltiamo solo durante l'inserimento.
+    // sourceURL fa comparire il codice in DevTools → Sources con un nome, con breakpoint e stack trace leggibili.
+    function loadSdkFromCode(code) {
+      return new Promise((resolve, reject) => {
+        let captured = null;
+        const onError = (ev) => { captured = ev.error || new Error(ev.message); ev.preventDefault(); };
+        window.addEventListener('error', onError);
+        const s = document.createElement('script');
+        s.textContent = code + `\n//# sourceURL=${CUSTOM_JS_SOURCE_URL}`;
+        document.head.appendChild(s);
+        window.removeEventListener('error', onError);
+        if (captured) reject(new Error('Errore nel custom JS: ' + captured.message));
+        else resolve();
+      });
+    }
+
     renderSdkStatus('loading');
     const sdkLoadStart = performance.now();
-    const sdkReady = new Promise((resolve, reject) => {
-      const s = document.createElement('script');
-      s.src = ACTIVE_SDK_URL;
-      s.async = false;
-      s.onload = resolve;
-      s.onerror = () => reject(new Error('Impossibile caricare lo script SDK: ' + ACTIVE_SDK_URL));
-      document.head.appendChild(s);
+    const sdkReady = SDK_MODE === 'customJs' ? loadSdkFromCode(customJs) : loadSdkFromUrl(ACTIVE_SDK_URL);
+
+    // =====================================================
+    // MODALE CUSTOM JS
+    // Apri → mostra il codice attualmente salvato (vederlo, copiarlo, modificarlo).
+    // Salva → controllo di sintassi, salvataggio, reload.
+    // =====================================================
+    const jsDialog = document.getElementById('customJsDialog');
+    const jsCode = document.getElementById('customJsCode');
+    const jsMeta = document.getElementById('customJsMeta');
+    const jsChecks = document.getElementById('customJsChecks');
+    const jsFile = document.getElementById('customJsFile');
+
+    // Controllo di sintassi SENZA eseguire: new Function compila il corpo ma non lo invoca.
+    function checkSyntax(code) {
+      try { new Function(code); return null; } catch (e) { return e; }   // eslint-disable-line no-new-func
+    }
+
+    // Analisi statica leggera: segnala le cose che cambiano il significato del test
+    function analyzeCode(code) {
+      const checks = [];
+      if (!code.trim()) return checks;
+
+      const syntaxError = checkSyntax(code);
+      checks.push(syntaxError
+        ? { level: 'err', text: `Errore di sintassi: ${syntaxError.message}. Il codice non verrà salvato.` }
+        : { level: 'ok', text: 'Sintassi valida.' });
+
+      if (/\/apple\/lightbox\//.test(code)) {
+        checks.push({ level: 'info', text: 'Versione legacy: contiene la route /apple/lightbox (apertura in nuova finestra su dispositivi Apple).' });
+      }
+      if (!/axerve\.lightBox\.open\s*=/.test(code)) {
+        checks.push({ level: 'warn', text: 'Non trovo la definizione di axerve.lightBox.open: la pagina potrebbe non riuscire ad aprire la lightbox.' });
+      }
+      const hosts = [...new Set((code.match(/https:\/\/[a-z0-9.-]+/gi) || []).map(h => h.toLowerCase()))];
+      if (hosts.length) checks.push({ level: 'info', text: 'Host referenziati: ' + hosts.join(', ') });
+      return checks;
+    }
+
+    function renderJsAnalysis() {
+      const code = jsCode.value;
+      const lines = code ? code.split('\n').length : 0;
+      jsMeta.textContent = code
+        ? `${(code.length / 1024).toFixed(1)} KB · ${lines} righe`
+        : 'Nessun codice. Salvando vuoto il custom JS viene rimosso.';
+      jsChecks.replaceChildren(...analyzeCode(code).map(c => {
+        const d = document.createElement('div');
+        d.className = `js-check ${c.level}`;
+        d.textContent = c.text;   // textContent: il contenuto del codice non viene mai interpretato come HTML
+        return d;
+      }));
+    }
+
+    // Debounce: l'analisi (che include la compilazione) non gira a ogni tasto su file grandi
+    let analysisTimer = null;
+    jsCode.addEventListener('input', () => {
+      clearTimeout(analysisTimer);
+      analysisTimer = setTimeout(renderJsAnalysis, 250);
+    });
+
+    document.getElementById('customJsOpen').addEventListener('click', () => {
+      jsCode.value = readCustomJs();   // riapre sempre con il codice salvato, non con modifiche non salvate
+      renderJsAnalysis();
+      jsDialog.showModal();
+      jsCode.focus();
+    });
+
+    const closeDialog = () => jsDialog.close();
+    document.getElementById('customJsClose').addEventListener('click', closeDialog);
+    document.getElementById('customJsCancel').addEventListener('click', closeDialog);
+
+    document.getElementById('customJsFileBtn').addEventListener('click', () => jsFile.click());
+    jsFile.addEventListener('change', async () => {
+      const file = jsFile.files && jsFile.files[0];
+      if (!file) return;
+      jsCode.value = await file.text();
+      jsFile.value = '';   // permette di ricaricare lo stesso file
+      renderJsAnalysis();
+      Logger.info(`Custom JS: file caricato nella modale (${file.name}, ${(file.size / 1024).toFixed(1)} KB)`);
+    });
+
+    document.getElementById('customJsCopy').addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
+      try {
+        await navigator.clipboard.writeText(jsCode.value);
+        btn.textContent = 'Copiato';
+      } catch {
+        // Fallback per contesti senza Clipboard API (es. file://): selezione manuale
+        jsCode.select();
+        btn.textContent = 'Premi Ctrl/Cmd+C';
+      }
+      setTimeout(() => { btn.textContent = 'Copia'; }, 1500);
+    });
+
+    document.getElementById('customJsRemove').addEventListener('click', () => {
+      writeCustomJs('');
+      window.location.reload();
+    });
+
+    document.getElementById('customJsSave').addEventListener('click', () => {
+      const code = jsCode.value;
+      if (code.trim()) {
+        const syntaxError = checkSyntax(code);
+        if (syntaxError) {
+          renderJsAnalysis();
+          Logger.warn('Custom JS non salvato: errore di sintassi', { errore: syntaxError.message });
+          return;   // la modale resta aperta con l'errore in evidenza
+        }
+      }
+      if (!writeCustomJs(code.trim() ? code : '')) {
+        jsChecks.prepend(Object.assign(document.createElement('div'), {
+          className: 'js-check err',
+          textContent: 'Salvataggio fallito: localStorage non disponibile o spazio esaurito.'
+        }));
+        return;
+      }
+      window.location.reload();   // stesso motivo dell'URL: window.axerve va ridefinito da zero
     });
 
     // =====================================================
@@ -963,8 +1223,8 @@
       currentToken = paymentToken;   // da qui in poi il token viene mascherato anche dentro gli URL loggati
       Logger.startAttempt(`Nuovo tentativo di apertura lightbox`, {
         'Contesto': {
-          'SDK': ACTIVE_SDK_URL,
-          'SDK tipo': IS_CUSTOM_SDK ? 'custom' : 'default',
+          'SDK': SDK_SOURCE_LABEL,
+          'SDK modalità': SDK_MODE,
           'Origin pagina': window.location.origin,
           'Callback': callbackEnabled ? 'abilitata' : 'disabilitata'
         }
@@ -1031,21 +1291,30 @@
         payButton.disabled = false;
         const version = (window.axerve && window.axerve.lightBox) ? 'axerve.lightBox presente' : 'axerve.lightBox ASSENTE';
         (window.axerve && window.axerve.lightBox ? Logger.success : Logger.error)(
-          `SDK caricato in ${Math.round(performance.now() - sdkLoadStart)}ms (${IS_CUSTOM_SDK ? 'custom' : 'default'})`,
-          {
-            'URL': describeUrl(ACTIVE_SDK_URL),
-            'Verifica': version,
-            'Sorgente': 'DevTools → Sources → cerca "axerve.js"'
-          }
+          `SDK caricato in ${Math.round(performance.now() - sdkLoadStart)}ms (${SDK_MODE})`,
+          SDK_MODE === 'customJs'
+            ? {
+                'Sorgente': SDK_SOURCE_LABEL,
+                'Verifica': version,
+                'Analisi': Object.fromEntries(analyzeCode(customJs).map((c, i) => [`${i + 1}. ${c.level}`, c.text])),
+                'Debug': `DevTools → Sources → cerca "${CUSTOM_JS_SOURCE_URL}"`
+              }
+            : {
+                'URL': describeUrl(ACTIVE_SDK_URL),
+                'Verifica': version,
+                'Sorgente': 'DevTools → Sources → cerca "axerve.js"'
+              }
         );
       })
       .catch((err) => {
         renderSdkStatus('error');
-        Logger.error('Caricamento SDK fallito', {
-          URL: ACTIVE_SDK_URL,
-          errore: err.message,
-          'Possibili cause': ['URL errato o 404', 'Blocco rete/adblock', 'CSP della pagina', 'Host non raggiungibile']
-        });
+        Logger.error('Caricamento SDK fallito', SDK_MODE === 'customJs'
+          ? { Sorgente: SDK_SOURCE_LABEL, errore: err.message, 'Cosa fare': 'Apri "Custom JS", correggi il codice e salva di nuovo' }
+          : {
+              URL: ACTIVE_SDK_URL,
+              errore: err.message,
+              'Possibili cause': ['URL errato o 404', 'Risposta non JavaScript (MIME text/html)', 'Blocco rete/adblock', 'CSP della pagina', 'Host non raggiungibile']
+            });
         showMessage('✗ ' + err.message, 'error');
       });
   </script>
