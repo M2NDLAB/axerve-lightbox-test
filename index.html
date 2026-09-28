@@ -1,18 +1,24 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="it" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="color-scheme" content="light dark" />
+  <!-- color-scheme "light": il tema di default e' chiaro. Il valore effettivo
+       viene poi allineato al tema scelto tramite la proprieta' CSS color-scheme
+       su :root (vedi DESIGN TOKENS), cosi' scrollbar e controlli nativi seguono
+       il tema della pagina e non quello del sistema operativo. -->
+  <meta name="color-scheme" content="light" />
   <title>Fabrick Lightbox - Test</title>
 
-  <!-- Tema applicato PRIMA del render per evitare il flash chiaro→scuro al caricamento.
-       Priorità: scelta salvata dall'utente → preferenza di sistema. -->
+  <!-- Tema applicato PRIMA del render per evitare il flash di colore al caricamento.
+       Default: CHIARO. Solo una scelta esplicita dell'utente (salvata col toggle)
+       lo cambia. La preferenza di sistema non viene piu' seguita: con il sistema
+       operativo in modalita' scura la pagina si apriva scura, contro il default voluto. -->
   <script>
     (function () {
       var saved = null;
       try { saved = localStorage.getItem('fabrick-lb-test:theme'); } catch (e) { /* storage non disponibile */ }
-      var theme = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      var theme = (saved === 'dark' || saved === 'light') ? saved : 'light';
       document.documentElement.setAttribute('data-theme', theme);
     })();
   </script>
@@ -32,6 +38,7 @@
        ===================================================== */
     :root,
     :root[data-theme="light"] {
+      color-scheme: light;
       --bg: #f7f7f8;
       --surface: #ffffff;
       --surface-2: #f7f7f8;
@@ -59,6 +66,7 @@
     }
 
     :root[data-theme="dark"] {
+      color-scheme: dark;
       --bg: #0c1622;
       --surface: #13202e;
       --surface-2: #0f1a26;
@@ -257,6 +265,7 @@
       white-space: nowrap;
     }
     .sdk-btn:hover { background: var(--primary); color: #fff; }
+    .sdk-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
     .sdk-btn.secondary { border-color: var(--border); color: var(--muted); }
     .sdk-btn.secondary:hover { background: var(--muted); border-color: var(--muted); color: #fff; }
     .sdk-current { margin-top: 8px; font-size: 12px; color: var(--text); word-break: break-all; }
@@ -271,6 +280,7 @@
     }
     .sdk-badge.custom { background: var(--warn-bg); color: var(--warn-fg); }
     .sdk-badge.error  { background: var(--err-bg);  color: var(--err-fg); }
+    .sdk-badge.info   { background: var(--info-bg); color: var(--info-fg); }
 
     /* ===== Istruzioni ed esempio ===== */
     .steps { margin-left: 18px; color: var(--text); }
@@ -291,6 +301,122 @@
     .api-example-title { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 8px; }
     .api-example pre { margin: 0; }
     .api-example code { color: var(--ink); font-family: 'SFMono-Regular', Consolas, monospace; font-size: 12px; line-height: 1.6; }
+
+    /* =====================================================
+       CARD "DATI PAGAMENTO" CON RETRO
+       Fronte: il form. Retro: il codice di integrazione che corrisponde ai
+       dati del form, modificabile e salvabile.
+
+       Le due facce sono sovrapposte con CSS grid (stessa cella, grid-area 1/1)
+       invece che con position:absolute. Differenza pratica: con absolute il
+       retro eredita l'altezza del fronte e un editor piu' alto del form
+       verrebbe tagliato; con grid il contenitore prende l'altezza della faccia
+       piu' alta, qualunque sia.
+
+       Il pulsante di flip sta FUORI dalle facce, nell'intestazione della card:
+       e' un solo controllo che funziona in entrambe le direzioni, senza un
+       secondo pulsante "indietro" sul retro.
+       ===================================================== */
+    .card-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      margin-bottom: 16px;
+    }
+    .card-head .card-title { margin-bottom: 0; }
+
+    .flip-toggle {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 12px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: var(--surface);
+      color: var(--text);
+      font: inherit; font-size: 12px; font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+    }
+    .flip-toggle:hover { border-color: var(--primary); color: var(--primary); }
+    .flip-toggle[aria-pressed="true"] { border-color: var(--primary); color: var(--primary); background: var(--primary-soft); }
+    .flip-toggle:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+    .flip-toggle svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+    .flip-scene { perspective: 1800px; }
+    .flipper {
+      display: grid;
+      transform-style: preserve-3d;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .flipper.flipped { transform: rotateY(180deg); }
+    .face {
+      grid-area: 1 / 1;
+      min-width: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    .face-back { transform: rotateY(180deg); }
+    /* inert toglie focus e interazione alla faccia girata: senza, il Tab
+       entrerebbe in campi invisibili. */
+    .face[inert] { pointer-events: none; }
+
+    /* ----- Barra di selezione file + struttura ----- */
+    .code-bar {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;
+      margin-bottom: 10px;
+    }
+    .seg {
+      display: inline-flex;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .seg-btn {
+      padding: 6px 14px;
+      border: 0;
+      background: var(--surface);
+      color: var(--text);
+      font: inherit; font-size: 12px; font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .seg-btn + .seg-btn { border-left: 1px solid var(--border); }
+    .seg-btn:hover:not([aria-selected="true"]):not([aria-pressed="true"]) { color: var(--primary); background: var(--primary-soft); }
+    .seg-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+    .seg-btn[hidden] { display: none; }
+    /* I tab dei file in monospace: sono nomi di file, non etichette */
+    .seg.files .seg-btn { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 11.5px; }
+    .seg.files .seg-btn[aria-selected="true"] { background: var(--primary); color: #fff; }
+    .seg.structure .seg-btn[aria-pressed="true"] { background: var(--primary-soft); color: var(--primary); }
+
+    /* ----- Editor ----- */
+    .code-editor {
+      display: block;
+      width: 100%; min-height: 360px; resize: vertical;
+      padding: 12px;
+      border: 1px solid var(--border); border-radius: 4px;
+      background: var(--surface-2); color: var(--ink);
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+      font-size: 12px; line-height: 1.55;
+      white-space: pre; overflow-wrap: normal; tab-size: 2;
+    }
+    .code-editor:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+    .code-editor[hidden] { display: none; }
+
+    .code-status {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px;
+      margin-top: 8px; font-size: 12px; color: var(--muted);
+    }
+    .code-status .sdk-badge { margin-right: 4px; }
+    .code-note {
+      margin-top: 8px; padding: 8px 10px;
+      border-radius: 4px; border: 1px solid var(--info-bd);
+      background: var(--info-bg); color: var(--info-fg);
+      font-size: 12px;
+    }
+    .code-note[hidden] { display: none; }
+
+    .code-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .code-actions .sdk-btn { padding: 7px 14px; }
+    .code-actions .right { margin-left: auto; display: flex; gap: 8px; }
+    .sdk-btn.confirm { border-color: var(--warn-bd); color: var(--warn-fg); background: var(--warn-bg); }
 
     /* ===== Footer ===== */
     .footer { text-align: center; margin-top: 24px; }
@@ -364,6 +490,7 @@
       font: inherit; font-weight: 600; font-size: 13px; cursor: pointer;
     }
     .btn-primary:hover { background: var(--btn-hover); }
+    .btn-primary:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
     .sdk-btn.danger { border-color: var(--err-bd); color: var(--err-fg); }
     .sdk-btn.danger:hover { background: var(--err-fg); border-color: var(--err-fg); color: #fff; }
     .icon-btn {
@@ -379,10 +506,14 @@
       .sdk-row { flex-wrap: wrap; }
       .sdk-row input { flex-basis: 100%; }
       .sdk-btn { padding: 8px 14px; }
+      .code-actions .right { margin-left: 0; width: 100%; }
+      .code-actions .right .btn-primary { flex: 1; }
     }
     @media (prefers-reduced-motion: reduce) {
       * { transition: none !important; }
       .spinner { animation-duration: 2s; }
+      /* Il flip diventa uno scambio istantaneo */
+      .flipper { transition: none; }
     }
   </style>
 </head>
@@ -428,48 +559,103 @@
       </div>
     </section>
 
-    <section class="card">
-      <h2 class="card-title"><span class="dot" aria-hidden="true"></span>Dati pagamento</h2>
-
-      <form id="paymentForm" novalidate>
-        <div class="form-group">
-          <label for="shopLogin">Shop Login</label>
-          <input type="text" id="shopLogin" placeholder="GESPAY00001" autocomplete="off" required />
-          <small class="field-hint">Codice esercente</small>
-        </div>
-
-        <div class="form-group">
-          <label for="paymentID">Payment ID</label>
-          <input type="text" id="paymentID" placeholder="1360119538182" autocomplete="off" required />
-          <small class="field-hint">ID transazione generato dal server</small>
-        </div>
-
-        <div class="form-group">
-          <label for="paymentToken">Payment Token</label>
-          <input type="text" id="paymentToken" placeholder="8a901523-67a5-4aca-bbd2-c7c412934289" autocomplete="off" required />
-          <small class="field-hint">Token generato dal server</small>
-        </div>
-
-        <div class="form-group">
-          <label>Gestione Callback</label>
-          <div class="chips" role="radiogroup">
-            <label class="chip">
-              <input type="radio" name="callbackMode" value="enabled" checked />
-              Callback JS abilitata
-            </label>
-            <label class="chip">
-              <input type="radio" name="callbackMode" value="disabled" />
-              Solo redirect
-            </label>
-          </div>
-          <small class="field-hint">Scegli se gestire l’esito via JavaScript o lasciare il redirect automatico</small>
-        </div>
-
-        <button type="submit" class="pay-button" id="payButton">
-          <span id="buttonText">Apri Lightbox</span>
+    <!-- ===== Dati pagamento ↔ Codice di integrazione ===== -->
+    <section class="card" aria-labelledby="payCardTitle">
+      <div class="card-head">
+        <h2 class="card-title" id="payCardTitle"><span class="dot" aria-hidden="true"></span><span id="payCardTitleText">Dati pagamento</span></h2>
+        <button type="button" class="flip-toggle" id="flipToggle" aria-pressed="false" aria-controls="payFlipper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          <span id="flipToggleText">Codice</span>
         </button>
-      </form>
+      </div>
 
+      <div class="flip-scene">
+        <div class="flipper" id="payFlipper">
+
+          <!-- FRONTE: form -->
+          <div class="face face-front" id="payFront">
+            <form id="paymentForm" novalidate>
+              <div class="form-group">
+                <label for="shopLogin">Shop Login</label>
+                <input type="text" id="shopLogin" placeholder="GESPAY00001" autocomplete="off" required />
+                <small class="field-hint">Codice esercente</small>
+              </div>
+
+              <div class="form-group">
+                <label for="paymentID">Payment ID</label>
+                <input type="text" id="paymentID" placeholder="1360119538182" autocomplete="off" required />
+                <small class="field-hint">ID transazione generato dal server</small>
+              </div>
+
+              <div class="form-group">
+                <label for="paymentToken">Payment Token</label>
+                <input type="text" id="paymentToken" placeholder="8a901523-67a5-4aca-bbd2-c7c412934289" autocomplete="off" required />
+                <small class="field-hint">Token generato dal server</small>
+              </div>
+
+              <div class="form-group">
+                <label>Gestione Callback</label>
+                <div class="chips" role="radiogroup">
+                  <label class="chip">
+                    <input type="radio" name="callbackMode" value="enabled" checked />
+                    Callback JS abilitata
+                  </label>
+                  <label class="chip">
+                    <input type="radio" name="callbackMode" value="disabled" />
+                    Solo redirect
+                  </label>
+                </div>
+                <small class="field-hint">Scegli se gestire l’esito via JavaScript o lasciare il redirect automatico</small>
+              </div>
+
+              <button type="submit" class="pay-button" id="payButton">
+                <span id="buttonText">Apri Lightbox</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- RETRO: codice di integrazione -->
+          <div class="face face-back" id="payBack" inert aria-label="Codice di integrazione">
+            <div class="code-bar">
+              <div class="seg files" role="tablist" aria-label="File">
+                <button type="button" class="seg-btn" role="tab" id="tab-html" data-file="html" aria-controls="code-html" aria-selected="true">index.html</button>
+                <button type="button" class="seg-btn" role="tab" id="tab-css"  data-file="css"  aria-controls="code-css"  aria-selected="false" tabindex="-1">style.css</button>
+                <button type="button" class="seg-btn" role="tab" id="tab-js"   data-file="js"   aria-controls="code-js"   aria-selected="false" tabindex="-1">app.js</button>
+              </div>
+              <div class="seg structure" role="group" aria-label="Struttura del codice">
+                <button type="button" class="seg-btn" data-structure="split"  aria-pressed="true">File separati</button>
+                <button type="button" class="seg-btn" data-structure="single" aria-pressed="false">File unico</button>
+              </div>
+            </div>
+
+            <label for="code-html" class="visually-hidden">Codice HTML</label>
+            <textarea class="code-editor" id="code-html" role="tabpanel" aria-labelledby="tab-html" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+            <label for="code-css" class="visually-hidden">Codice CSS</label>
+            <textarea class="code-editor" id="code-css"  role="tabpanel" aria-labelledby="tab-css"  spellcheck="false" autocomplete="off" autocapitalize="off" hidden></textarea>
+            <label for="code-js" class="visually-hidden">Codice JavaScript</label>
+            <textarea class="code-editor" id="code-js"   role="tabpanel" aria-labelledby="tab-js"   spellcheck="false" autocomplete="off" autocapitalize="off" hidden></textarea>
+
+            <div class="code-status">
+              <span id="codeState"></span>
+              <span id="codeMeta"></span>
+            </div>
+            <div class="code-note" id="codeNote" role="status" aria-live="polite" hidden></div>
+
+            <div class="code-actions">
+              <button type="button" class="sdk-btn" id="codeCopy">Copia</button>
+              <button type="button" class="sdk-btn" id="codeDownload">Scarica</button>
+              <button type="button" class="sdk-btn secondary" id="codeRegenerate">Rigenera dai dati</button>
+              <div class="right">
+                <button type="button" class="btn-primary" id="codeSave">Salva</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Fuori dalle facce: gli esiti della lightbox arrivano in modo asincrono
+           e devono restare visibili anche con la card girata. -->
       <div id="statusMessage" class="status-message" role="status" aria-live="polite"></div>
     </section>
 
@@ -480,6 +666,7 @@
         <li>Ricevi <code class="inline">paymentID</code> e <code class="inline">paymentToken</code> nella risposta</li>
         <li>Inserisci i dati nei campi sopra</li>
         <li>Clicca su "Apri Lightbox"</li>
+        <li>Con il pulsante <code class="inline">&lt;/&gt; Codice</code> vedi, modifichi e salvi il codice di integrazione che corrisponde a quei dati</li>
       </ol>
 
       <div class="api-example">
@@ -675,13 +862,14 @@
     // Tre modalità, in ordine di priorità:
     //   1. Custom JS  → codice incollato/caricato dalla modale, eseguito inline
     //   2. Custom URL → URL https inserito nel campo "Script SDK"
-    //   3. Default    → script Orchestra sandbox
+    //   3. Default    → script Lightbox sandbox indicato nella documentazione
+    //                   (produzione: https://ecomm.sella.it/pagam/javascript/axerve.js)
     //
     // Tutto è salvato in localStorage e MAI letto da query string:
     // un link costruito da terzi (es. ?sdk=https://evil/x.js) non può far eseguire
     // codice arbitrario sull'origin di questa pagina.
     // =====================================================
-    const DEFAULT_SDK_URL = 'https://sandbox-web.axerve.com/orchestra/checkout/assets/axerve.js';
+    const DEFAULT_SDK_URL = 'https://sandbox.gestpay.net/pagam/javascript/axerve.js';
     const SDK_STORAGE_KEY = 'axerve-lb-test:sdkUrl';
     const CUSTOM_JS_STORAGE_KEY = 'fabrick-lb-test:customJs';
     const CUSTOM_JS_SOURCE_URL = 'fabrick-lb-custom-sdk.js';   // nome con cui il codice compare in DevTools → Sources
@@ -1000,8 +1188,11 @@
     // =====================================================
     // TEMA LIGHT / DARK
     // Il tema iniziale è già applicato nello <head> (niente flash al caricamento).
-    // Qui si gestisce il cambio manuale, salvato in localStorage.
-    // Se l'utente non ha mai scelto, la pagina segue il tema di sistema anche quando cambia.
+    // Default CHIARO; qui si gestisce solo il cambio manuale, salvato in localStorage.
+    //
+    // Scelta deliberata: la pagina NON segue piu' il tema del sistema operativo.
+    // Prima un OS in modalita' scura apriva la pagina scura; il default richiesto
+    // e' chiaro e lo resta finche' l'utente non sceglie diversamente.
     // =====================================================
     const THEME_STORAGE_KEY = 'fabrick-lb-test:theme';
     const themeToggle = document.getElementById('themeToggle');
@@ -1019,14 +1210,6 @@
       try { localStorage.setItem(THEME_STORAGE_KEY, next); } catch { /* storage non disponibile: vale solo per la sessione */ }
       Logger.info(`Tema impostato: ${next}`);
     });
-
-    if (window.matchMedia) {
-      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-        let saved = null;
-        try { saved = localStorage.getItem(THEME_STORAGE_KEY); } catch { /* ignore */ }
-        if (!saved) applyTheme(e.matches ? 'dark' : 'light');
-      });
-    }
 
     // =====================================================
     // DOM
@@ -1091,7 +1274,7 @@
         Logger.info(`Callback JS ${callbackEnabled ? 'ABILITATA' : 'DISABILITATA (redirect Axerve)'}`);
       });
     });
-    
+
     function onAxerveLightboxResult(response) {
       if (callbackTimeoutId) {
         clearTimeout(callbackTimeoutId);
@@ -1252,6 +1435,684 @@
         setLoading(false);
       }
     });
+
+    // =====================================================
+    // CODICE DI INTEGRAZIONE (retro della card "Dati pagamento")
+    //
+    // Mostra la pagina di integrazione che corrisponde a ciò che si sta
+    // testando: shopLogin, paymentID, paymentToken, modalità callback/redirect
+    // e script SDK in uso. Il codice segue il pattern della documentazione
+    // Lightbox: script Fabrick caricato nell'<head>, axerve.lightBox.shop
+    // impostato prima dell'open, callback opzionale come terzo parametro.
+    //
+    // CICLO DI VITA
+    //   generated → il codice si rigenera da solo mentre cambi i dati del form
+    //   dirty     → hai modificato il testo: la rigenerazione automatica si ferma,
+    //               altrimenti cancellerebbe le tue modifiche
+    //   saved     → salvato in localStorage, sopravvive al reload
+    //
+    // STRUTTURA
+    //   File separati → index.html + style.css + app.js, tre tab
+    //   File unico    → un solo index.html con <style> e <script> inline,
+    //                   si vede solo il tab HTML
+    //   La conversione è bidirezionale. Se incolli nel tab HTML una pagina
+    //   completa con CSS/JS inline, la vista passa da sola a "File unico".
+    //
+    // Nessun codice di questo editor viene eseguito dalla pagina: è testo.
+    // =====================================================
+    const Integration = (() => {
+      const STORAGE_KEY = 'fabrick-lb-test:integration';
+      const FILE_NAMES = { html: 'index.html', css: 'style.css', js: 'app.js' };
+      const MIME = { html: 'text/html', css: 'text/css', js: 'text/javascript' };
+      const DOC_URL = 'https://docs.fabrick.com/docs/paymentHubAndOrchestra/ecommerce/integrationMethods/lightbox/';
+
+      const els = {
+        flipper: document.getElementById('payFlipper'),
+        front: document.getElementById('payFront'),
+        back: document.getElementById('payBack'),
+        toggle: document.getElementById('flipToggle'),
+        toggleText: document.getElementById('flipToggleText'),
+        title: document.getElementById('payCardTitleText'),
+        tabs: Array.from(document.querySelectorAll('#payBack [role="tab"]')),
+        structureBtns: Array.from(document.querySelectorAll('#payBack [data-structure]')),
+        editors: {
+          html: document.getElementById('code-html'),
+          css: document.getElementById('code-css'),
+          js: document.getElementById('code-js'),
+        },
+        state: document.getElementById('codeState'),
+        meta: document.getElementById('codeMeta'),
+        note: document.getElementById('codeNote'),
+        copy: document.getElementById('codeCopy'),
+        download: document.getElementById('codeDownload'),
+        regenerate: document.getElementById('codeRegenerate'),
+        save: document.getElementById('codeSave'),
+      };
+
+      const state = {
+        mode: 'split',          // 'split' | 'single'
+        tab: 'html',            // 'html' | 'css' | 'js'
+        source: 'generated',    // 'generated' | 'saved'
+        dirty: false,
+        savedAt: null,
+      };
+
+      // ---------- Utility di testo ----------
+
+      // Letterale JS sicuro: JSON.stringify gestisce apici e backslash;
+      // "<" diventa \u003c perché nella versione a file unico il codice finisce
+      // dentro un <script>, e un valore contenente "<\/script>" chiuderebbe il tag.
+      const jsLiteral = (v) => JSON.stringify(String(v)).replace(/</g, '\\u003c');
+
+      const escAttr = (v) => String(v)
+        .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+      const indent = (text, spaces) => {
+        const pad = ' '.repeat(spaces);
+        return text.split('\n').map(l => (l.trim() ? pad + l : l)).join('\n');
+      };
+
+      // Toglie il rientro comune: il contenuto estratto da un <style> annidato
+      // nell'HTML non deve portarsi dietro quattro spazi su ogni riga.
+      const dedent = (text) => {
+        const lines = text.replace(/^\n+|\s+$/g, '').split('\n');
+        const widths = lines.filter(l => l.trim()).map(l => l.match(/^ */)[0].length);
+        const min = widths.length ? Math.min(...widths) : 0;
+        return lines.map(l => l.slice(min)).join('\n');
+      };
+
+      // ---------- Generazione dai dati del form ----------
+
+      function formValues() {
+        const read = (id) => {
+          const el = document.getElementById(id);
+          const v = el.value.trim();
+          return { value: v || el.placeholder, isExample: !v };
+        };
+        return {
+          shop: read('shopLogin'),
+          id: read('paymentID'),
+          token: read('paymentToken'),
+          callback: callbackEnabled,
+        };
+      }
+
+      function sdkForIntegration() {
+        // Con il Custom JS la pagina di test esegue codice incollato, che non
+        // ha un URL: nell'integrazione si indica lo script di default.
+        return SDK_MODE === 'customJs'
+          ? { url: DEFAULT_SDK_URL, note: 'Nella pagina di test e\u2019 attivo un Custom JS: qui e\u2019 indicato lo script di default.' }
+          : { url: ACTIVE_SDK_URL, note: SDK_MODE === 'customUrl' ? 'Script SDK personalizzato impostato nella pagina di test.' : '' };
+      }
+
+      function generateHtml(v) {
+        const sdk = sdkForIntegration();
+        const resultBox = v.callback
+          ? '\n    <p id="paymentResult" class="payment-result" role="status" aria-live="polite" hidden></p>'
+          : '';
+        const sdkNote = sdk.note ? `\n       ${sdk.note}` : '';
+        return `<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout — Fabrick Lightbox</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <\!-- Libreria Fabrick Lightbox.
+       Va sempre caricata dagli URL Fabrick: una copia salvata non riceve
+       gli aggiornamenti. Script sincrono nell'<head>: viene eseguito prima
+       di app.js, quindi window.axerve esiste già quando il tuo codice lo usa.${sdkNote}
+       Riferimento: ${DOC_URL} -->
+  <script src="${escAttr(sdk.url)}"><\/script>
+</head>
+<body>
+  <main class="checkout">
+    <h1>Riepilogo ordine</h1>
+    <p class="checkout-note">Il pagamento si apre in una finestra sovrapposta a questa pagina.</p>
+    <button type="button" id="payButton" class="pay-button">Paga ora</button>${resultBox}
+  </main>
+
+  <script src="app.js"><\/script>
+</body>
+</html>`;
+      }
+
+      function generateCss(v) {
+        const resultRules = v.callback ? `
+
+.payment-result {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border: 1px solid;
+  border-radius: 4px;
+  font-size: 14px;
+}
+.payment-result.ok { background: #eafbe3; color: #2d7a12; border-color: #b9eaa7; }
+.payment-result.ko { background: #fdecec; color: #a61b1b; border-color: #f5b5b5; }
+.payment-result.xx { background: #fff6e0; color: #8a5a00; border-color: #f5d38a; }` : '';
+
+        return `*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: #f7f7f8;
+  color: #002033;
+}
+
+.checkout {
+  max-width: 420px;
+  margin: 64px auto;
+  padding: 32px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 32, 51, 0.06), 0 1px 8px rgba(0, 32, 51, 0.04);
+}
+
+.checkout h1 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.checkout-note {
+  margin: 0 0 24px;
+  color: #5b6b78;
+  font-size: 14px;
+}
+
+.pay-button {
+  width: 100%;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 4px;
+  background: #007bc3;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.pay-button:hover { background: #00659f; }
+.pay-button:focus-visible { outline: 3px solid #a9d3ef; outline-offset: 2px; }${resultRules}`;
+      }
+
+      function generateJs(v) {
+        const exampleNote = (v.shop.isExample || v.id.isExample || v.token.isExample)
+          ? '\n// ATTENZIONE: alcuni valori sono di esempio perché i campi del form sono vuoti.'
+          : '';
+        const openCall = v.callback
+          ? `  // Terzo parametro: la callback. Con la callback Fabrick NON esegue il
+  // redirect a fine pagamento: la gestione dell'esito passa a handlePaymentResult.
+  axerve.lightBox.open(PAYMENT_ID, PAYMENT_TOKEN, handlePaymentResult);`
+          : `  // Senza callback: a fine pagamento Fabrick esegue il redirect verso la
+  // URL di esito positivo/negativo configurata per la transazione.
+  axerve.lightBox.open(PAYMENT_ID, PAYMENT_TOKEN);`;
+
+        const callbackFn = v.callback ? `
+
+/**
+ * Esito del pagamento restituito dalla Lightbox.
+ * response = { status, paymentId, responseURL, error: { code, description } }
+ *
+ * Questo esito serve ad aggiornare l'interfaccia, NON a evadere l'ordine:
+ * l'esito definitivo è la notifica server-to-server, da verificare lato
+ * server con GET payment/detail.
+ */
+function handlePaymentResult(response) {
+  const box = document.getElementById('paymentResult');
+  const status = response && response.status;
+  const error = (response && response.error) || {};
+
+  let text;
+  let tone;
+  if (status === 'OK') {
+    text = 'Pagamento completato.';
+    tone = 'ok';
+  } else if (status === 'KO') {
+    text = 'Pagamento non riuscito' + (error.description ? ': ' + error.description : '.');
+    tone = 'ko';
+  } else if (status === 'XX') {
+    // Esito non definitivo (metodi asincroni): attendere la notifica S2S.
+    text = 'Pagamento in attesa di conferma.';
+    tone = 'xx';
+  } else {
+    text = 'Esito non riconosciuto' + (error.code ? ' (errore ' + error.code + ')' : '') + '.';
+    tone = 'ko';
+  }
+
+  box.textContent = text;   // textContent: nessun dato della risposta interpretato come HTML
+  box.className = 'payment-result ' + tone;
+  box.hidden = false;
+
+  // Per replicare il comportamento del redirect:
+  // if (response.responseURL) window.location.assign(response.responseURL);
+}` : '';
+
+        return `/*
+ * Integrazione Fabrick Lightbox
+ * ${DOC_URL}
+ *
+ * paymentID e paymentToken arrivano dalla risposta di POST /payment/create,
+ * chiamata LATO SERVER con la tua apikey. In una pagina reale il server li
+ * inserisce nel template: non vanno mai creati o richiesti dal browser.
+ */
+'use strict';
+${exampleNote}
+const SHOP_LOGIN    = ${jsLiteral(v.shop.value)};
+const PAYMENT_ID    = ${jsLiteral(v.id.value)};
+const PAYMENT_TOKEN = ${jsLiteral(v.token.value)};
+
+// shopLogin va impostato prima di aprire la Lightbox
+axerve.lightBox.shop = SHOP_LOGIN;
+
+// addEventListener invece di onclick inline: il markup resta separato dal
+// comportamento e la pagina è compatibile con una Content-Security-Policy
+// che vieta gli script inline.
+document.getElementById('payButton').addEventListener('click', () => {
+${openCall}
+});${callbackFn}
+`;
+      }
+
+      function generateParts() {
+        const v = formValues();
+        return { html: generateHtml(v), css: generateCss(v), js: generateJs(v) };
+      }
+
+      // ---------- Conversione file separati ↔ file unico ----------
+      //
+      // Basata su espressioni regolari, non su un parser DOM: DOMParser
+      // riserializzerebbe l'intero documento perdendo formattazione e commenti,
+      // cioè proprio quello che chi legge il codice vuole conservare.
+      // Limite noto: una stringa "<\/script>" dentro il JS chiude il blocco —
+      // ma è lo stesso limite del browser, quindi il comportamento coincide.
+
+      const RE_LINK_CSS = /<link\b[^>]*\bhref\s*=\s*["']style\.css["'][^>]*>/i;
+      const RE_SCRIPT_APP = /<script\b[^>]*\bsrc\s*=\s*["']app\.js["'][^>]*>\s*<\/script>/i;
+      const RE_STYLE_BLOCK = /[ \t]*<style\b[^>]*>([\s\S]*?)<\/style>[ \t]*\n?/gi;
+      // Script inline = senza attributo src. Esclusi i blocchi dati (JSON, template).
+      const RE_INLINE_SCRIPT = /[ \t]*<script\b(?![^>]*\bsrc\s*=)(?![^>]*\btype\s*=\s*["'](?:application\/(?:ld\+)?json|text\/template)["'])[^>]*>([\s\S]*?)<\/script>[ \t]*\n?/gi;
+
+      function merge(parts) {
+        let html = parts.html;
+        const css = parts.css.trim();
+        const js = parts.js.trim();
+
+        // Funzioni di sostituzione, non stringhe: il JS contiene "$", che in una
+        // stringa di sostituzione verrebbe interpretato ($&, $1…).
+        if (css) {
+          const block = `<style>\n${indent(css, 4)}\n  </style>`;
+          html = RE_LINK_CSS.test(html)
+            ? html.replace(RE_LINK_CSS, () => block)
+            : html.replace(/<\/head>/i, () => `  ${block}\n</head>`);
+        } else {
+          html = html.replace(RE_LINK_CSS, () => '');
+        }
+
+        if (js) {
+          const block = `<script>\n${indent(js, 4)}\n  <\/script>`;
+          html = RE_SCRIPT_APP.test(html)
+            ? html.replace(RE_SCRIPT_APP, () => block)
+            : html.replace(/<\/body>/i, () => `  ${block}\n</body>`);
+        } else {
+          html = html.replace(RE_SCRIPT_APP, () => '');
+        }
+        return { html, css: '', js: '' };
+      }
+
+      function split(html) {
+        const cssChunks = [];
+        let firstStyle = true;
+        let out = html.replace(RE_STYLE_BLOCK, (m, body) => {
+          cssChunks.push(dedent(body));
+          const replacement = firstStyle ? '  <link rel="stylesheet" href="style.css" />\n' : '';
+          firstStyle = false;
+          return replacement;
+        });
+
+        const jsChunks = [];
+        let firstScript = true;
+        out = out.replace(RE_INLINE_SCRIPT, (m, body) => {
+          jsChunks.push(dedent(body));
+          // Tutti gli script inline confluiscono in app.js nella posizione del
+          // primo: l'ordine relativo fra loro è preservato, quello rispetto agli
+          // script esterni intermedi no. Per una pagina di checkout è accettabile.
+          const replacement = firstScript ? '  <script src="app.js"><\/script>\n' : '';
+          firstScript = false;
+          return replacement;
+        });
+
+        return { html: out, css: cssChunks.join('\n\n'), js: jsChunks.join('\n\n') };
+      }
+
+      // Una pagina "tutto in uno" ha CSS o JS inline e non rimanda ai file esterni.
+      function looksSingleFile(html) {
+        const hasInline = /<style\b/i.test(html) || new RegExp(RE_INLINE_SCRIPT.source, 'i').test(html);
+        const refsFiles = RE_LINK_CSS.test(html) || RE_SCRIPT_APP.test(html);
+        return /<html\b|<!doctype/i.test(html) && hasInline && !refsFiles;
+      }
+
+      // ---------- Lettura/scrittura stato ----------
+
+      const getParts = () => ({
+        html: els.editors.html.value,
+        css: els.editors.css.value,
+        js: els.editors.js.value,
+      });
+
+      function setParts(parts) {
+        els.editors.html.value = parts.html;
+        els.editors.css.value = parts.css;
+        els.editors.js.value = parts.js;
+      }
+
+      function loadSaved() {
+        const raw = storageGet(STORAGE_KEY);
+        if (!raw) return null;
+        try {
+          const data = JSON.parse(raw);
+          // Validazione di forma: un valore corrotto o di una versione precedente
+          // non deve rompere la pagina, viene semplicemente ignorato.
+          if (!data || typeof data.html !== 'string') return null;
+          return {
+            mode: data.mode === 'single' ? 'single' : 'split',
+            html: data.html,
+            css: typeof data.css === 'string' ? data.css : '',
+            js: typeof data.js === 'string' ? data.js : '',
+            savedAt: data.savedAt || null,
+          };
+        } catch { return null; }
+      }
+
+      // ---------- Rendering dei controlli ----------
+
+      function render() {
+        const single = state.mode === 'single';
+        if (single) state.tab = 'html';
+
+        els.tabs.forEach(tab => {
+          const file = tab.dataset.file;
+          const selected = file === state.tab;
+          // In modalità file unico esiste solo index.html: i tab CSS/JS spariscono
+          tab.hidden = single && file !== 'html';
+          tab.setAttribute('aria-selected', String(selected));
+          tab.tabIndex = selected ? 0 : -1;
+          els.editors[file].hidden = !selected;
+        });
+
+        els.structureBtns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.structure === state.mode)));
+
+        const fileName = FILE_NAMES[state.tab];
+        els.download.textContent = `Scarica ${fileName}`;
+
+        let badge;
+        let text;
+        if (state.dirty) {
+          badge = '<span class="sdk-badge custom">MODIFICATO</span>';
+          text = 'Modifiche non salvate';
+        } else if (state.source === 'saved') {
+          badge = '<span class="sdk-badge info">SALVATO</span>';
+          text = state.savedAt ? `Salvato il ${new Date(state.savedAt).toLocaleString('it-IT')}` : 'Salvato';
+        } else {
+          badge = '<span class="sdk-badge">GENERATO</span>';
+          text = 'Segue i dati del form';
+        }
+        els.state.innerHTML = badge;
+        els.state.append(text);   // append di testo: nessuna interpretazione HTML
+
+        const code = els.editors[state.tab].value;
+        const lines = code ? code.split('\n').length : 0;
+        els.meta.textContent = `${fileName} · ${lines} righe · ${(new Blob([code]).size / 1024).toFixed(1)} KB · Tab rientra, Esc poi Tab esce`;
+      }
+
+      function note(text) {
+        els.note.textContent = text;
+        els.note.hidden = !text;
+      }
+
+      // ---------- Azioni ----------
+
+      function regenerateFromForm() {
+        let parts = generateParts();
+        if (state.mode === 'single') parts = merge(parts);
+        setParts(parts);
+        render();
+      }
+
+      // Rigenerazione automatica solo quando nessuno ha toccato il codice:
+      // sovrascrivere modifiche manuali mentre si digita nel form sarebbe
+      // una perdita di lavoro silenziosa.
+      function onFormChanged() {
+        if (state.source === 'generated' && !state.dirty) regenerateFromForm();
+      }
+
+      function setMode(mode) {
+        if (mode === state.mode) return;
+        const parts = getParts();
+        setParts(mode === 'single' ? merge(parts) : split(parts.html));
+        state.mode = mode;
+        if (state.source === 'saved') state.dirty = true;   // la struttura salvata era l'altra
+        note(mode === 'single'
+          ? 'CSS e JavaScript sono stati inseriti in index.html come <style> e <script>.'
+          : 'CSS e JavaScript inline sono stati estratti in style.css e app.js.');
+        render();
+      }
+
+      function save() {
+        const payload = { v: 1, mode: state.mode, ...getParts(), savedAt: new Date().toISOString() };
+        if (!storageSet(STORAGE_KEY, JSON.stringify(payload))) {
+          note('Salvataggio non riuscito: localStorage non disponibile o spazio esaurito.');
+          return false;
+        }
+        state.source = 'saved';
+        state.dirty = false;
+        state.savedAt = payload.savedAt;
+        note('');
+        render();
+        Logger.info('Codice di integrazione salvato', { struttura: state.mode, byte: JSON.stringify(payload).length });
+        return true;
+      }
+
+      // "Rigenera" scarta modifiche e salvataggio: chiede conferma con un secondo
+      // clic invece di un confirm() modale, che interrompe il flusso e su alcuni
+      // browser viene soppresso dopo più richieste.
+      let regenArmed = null;
+      function regenerate() {
+        const destructive = state.dirty || state.source === 'saved';
+        if (destructive && !regenArmed) {
+          els.regenerate.textContent = 'Conferma: sovrascrivi';
+          els.regenerate.classList.add('confirm');
+          regenArmed = setTimeout(disarmRegen, 4000);
+          return;
+        }
+        disarmRegen();
+        storageSet(STORAGE_KEY, '');
+        state.source = 'generated';
+        state.dirty = false;
+        state.savedAt = null;
+        note('');
+        regenerateFromForm();
+        Logger.info('Codice di integrazione rigenerato dai dati del form');
+      }
+      function disarmRegen() {
+        clearTimeout(regenArmed);
+        regenArmed = null;
+        els.regenerate.textContent = 'Rigenera dai dati';
+        els.regenerate.classList.remove('confirm');
+      }
+
+      async function copy() {
+        const editor = els.editors[state.tab];
+        const btn = els.copy;
+        try {
+          await navigator.clipboard.writeText(editor.value);
+          btn.textContent = 'Copiato';
+        } catch {
+          editor.focus();
+          editor.select();
+          btn.textContent = 'Premi Ctrl/Cmd+C';
+        }
+        setTimeout(() => { btn.textContent = 'Copia'; }, 1500);
+      }
+
+      function download() {
+        const file = state.tab;
+        const blob = new Blob([els.editors[file].value], { type: `${MIME[file]};charset=utf-8` });
+        const url = URL.createObjectURL(blob);
+        const a = Object.assign(document.createElement('a'), { href: url, download: FILE_NAMES[file] });
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        // Revoca differita: su alcuni browser la revoca immediata annulla il download
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+
+      function selectTab(file, focusEditor) {
+        if (state.mode === 'single' && file !== 'html') return;
+        state.tab = file;
+        render();
+        if (focusEditor) els.editors[file].focus();
+      }
+
+      // ---------- Flip ----------
+
+      function isFlipped() { return els.flipper.classList.contains('flipped'); }
+
+      function flip(showBack) {
+        els.flipper.classList.toggle('flipped', showBack);
+        els.front.toggleAttribute('inert', showBack);
+        els.back.toggleAttribute('inert', !showBack);
+        els.toggle.setAttribute('aria-pressed', String(showBack));
+        els.toggleText.textContent = showBack ? 'Dati' : 'Codice';
+        els.title.textContent = showBack ? 'Codice di integrazione' : 'Dati pagamento';
+        if (showBack) {
+          render();
+          els.editors[state.tab].focus({ preventScroll: true });
+        }
+      }
+
+      // ---------- Tastiera nell'editor ----------
+      //
+      // Tab inserisce due spazi invece di uscire dal campo: in un editor di
+      // codice è il comportamento atteso. Per non creare una trappola di focus,
+      // Esc sblocca: il Tab successivo esce normalmente. Shift+Tab esce sempre.
+      let tabReleased = false;
+
+      function insertAtCursor(textarea, text) {
+        textarea.focus();
+        // execCommand è deprecato ma è l'unico modo per inserire testo
+        // mantenendo la cronologia di annullamento (Ctrl+Z). Il fallback
+        // setRangeText funziona ovunque ma rompe l'undo.
+        let ok = false;
+        try { ok = !!(document.execCommand && document.execCommand('insertText', false, text)); } catch { ok = false; }
+        if (!ok) {
+          textarea.setRangeText(text, textarea.selectionStart, textarea.selectionEnd, 'end');
+          textarea.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      }
+
+      function onEditorKeydown(e) {
+        if (e.key === 'Escape') { tabReleased = true; return; }
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+          e.preventDefault();   // altrimenti il browser apre "Salva pagina con nome"
+          save();
+          return;
+        }
+        if (e.key === 'Tab' && !e.shiftKey && !tabReleased) {
+          e.preventDefault();
+          insertAtCursor(e.currentTarget, '  ');
+          return;
+        }
+        if (e.key !== 'Tab') tabReleased = false;
+      }
+
+      function onEditorInput() {
+        state.dirty = true;
+        disarmRegen();
+        render();
+      }
+
+      // Incollare una pagina completa con CSS/JS inline nel tab HTML porta
+      // alla vista "file unico": lì si vede e si modifica tutto in un posto,
+      // come richiesto. Il passaggio non tocca il testo incollato.
+      function onHtmlPaste() {
+        setTimeout(() => {
+          if (state.mode === 'split' && looksSingleFile(els.editors.html.value)) {
+            const hadParts = els.editors.css.value.trim() || els.editors.js.value.trim();
+            if (!hadParts) {
+              state.mode = 'single';
+              note('Rilevata una pagina con CSS e JavaScript inline: vista a file unico. Usa "File separati" per estrarli.');
+              render();
+            }
+          }
+        }, 0);
+      }
+
+      // Navigazione fra tab con le frecce, come da pattern WAI-ARIA dei tablist
+      function onTabKeydown(e) {
+        const visible = els.tabs.filter(t => !t.hidden);
+        const i = visible.indexOf(e.currentTarget);
+        let next = null;
+        if (e.key === 'ArrowRight') next = visible[(i + 1) % visible.length];
+        if (e.key === 'ArrowLeft') next = visible[(i - 1 + visible.length) % visible.length];
+        if (e.key === 'Home') next = visible[0];
+        if (e.key === 'End') next = visible[visible.length - 1];
+        if (next) { e.preventDefault(); selectTab(next.dataset.file); next.focus(); }
+      }
+
+      // ---------- Avvio ----------
+
+      function init() {
+        const saved = loadSaved();
+        if (saved) {
+          state.mode = saved.mode;
+          state.source = 'saved';
+          state.savedAt = saved.savedAt;
+          setParts(saved);
+          render();
+        } else {
+          regenerateFromForm();
+        }
+
+        els.toggle.addEventListener('click', () => flip(!isFlipped()));
+        els.tabs.forEach(tab => {
+          tab.addEventListener('click', () => selectTab(tab.dataset.file, true));
+          tab.addEventListener('keydown', onTabKeydown);
+        });
+        els.structureBtns.forEach(b => b.addEventListener('click', () => setMode(b.dataset.structure)));
+        Object.values(els.editors).forEach(ed => {
+          ed.addEventListener('keydown', onEditorKeydown);
+          ed.addEventListener('input', onEditorInput);
+          ed.addEventListener('focus', () => { tabReleased = false; });
+        });
+        els.editors.html.addEventListener('paste', onHtmlPaste);
+        els.copy.addEventListener('click', copy);
+        els.download.addEventListener('click', download);
+        els.regenerate.addEventListener('click', regenerate);
+        els.save.addEventListener('click', save);
+
+        ['shopLogin', 'paymentID', 'paymentToken'].forEach(id =>
+          document.getElementById(id).addEventListener('input', onFormChanged));
+        // "change" arriva dopo il listener che aggiorna callbackEnabled: il
+        // codice rigenerato riflette già la nuova modalità.
+        document.querySelectorAll('input[name="callbackMode"]').forEach(r => r.addEventListener('change', onFormChanged));
+
+        // Avviso prima di chiudere o ricaricare con modifiche non salvate.
+        // Rilevante anche perché "Applica" SDK e "Custom JS" ricaricano la pagina.
+        window.addEventListener('beforeunload', (e) => {
+          if (state.dirty) { e.preventDefault(); e.returnValue = ''; }
+        });
+      }
+
+      return { init, flip, save, setMode, isFlipped, state, _internal: { merge, split, looksSingleFile, generateParts } };
+    })();
+
+    Integration.init();
 
     // =====================================================
     // BEFOREUNLOAD
